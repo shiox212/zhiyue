@@ -1,0 +1,38 @@
+:root {
+  color-scheme: light;
+  --color-canvas: #f4f1eb;
+  --color-canvas-soft: #ece8df;
+  --color-surface: #fffdf9;
+  --color-surface-raised: #ffffff;
+  --color-text: #202822;
+  --color-text-soft: #536058;
+  --color-text-muted: #707b74;
+  --color-primary: #426451;
+  --color-primary-strong: #294d3b;
+  --color-primary-soft: #dce8df;
+  --color-accent: #a96d3d;
+  --color-accent-soft: #f5e4d4;
+  --color-border: #d9ddd7;
+  --color-border-strong: #b8c1ba;
+  --color-danger: #9b382f;
+  --color-danger-soft: #f8e3e0;
+  --color-success: #376b49;
+  --color-focus: #1261a0;
+  --shadow-sm: 0 1px 2px rgb(36 47 40 / 7%);
+  --shadow-md: 0 12px 34px rgb(36 47 40 / 9%);
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 22px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --container: 1180px;
+  --font-body: "PingFang SC", "Microsoft YaHei", system-ui, -apple-system, sans-serif;
+  --font-reading: "Songti SC", "Noto Serif CJK SC", "SimSun", serif;
+  --motion-fast: 160ms;
+  --motion-normal: 240ms;
+}

@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理后台 - 知阅</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.14/vue.min.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/echarts/5.4.3/echarts.min.js"></script>
+    <style>
+        :root {
+            --bg-root: #F6F4F1; --bg-surface: #EEECE8; --bg-card: #FDFCFB; --bg-elevated: #FFFFFF;
+            --bg-hover: #F0EDE9; --text-primary: #1F1D1A; --text-secondary: #6B6762; --text-muted: #9B9690;
+            --accent: #88998D; --accent-hover: #7A8D80; --accent-dark: #6B7D70;
+            --accent-light: rgba(136,153,141,0.08); --accent-glow: rgba(136,153,141,0.15); --accent-ghost: rgba(136,153,141,0.04);
+            --border: #E8E5E1; --border-light: #F0EDE9;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.04); --shadow-md: 0 4px 16px rgba(0,0,0,0.05);
+            --shadow-lg: 0 8px 32px rgba(0,0,0,0.07); --shadow-xl: 0 16px 48px rgba(0,0,0,0.09);
+            --shadow-accent: 0 4px 20px rgba(136,153,141,0.12);
+            --radius-sm: 4px; --radius-md: 8px; --radius-lg: 16px; --radius-xl: 24px;
+            --ease: cubic-bezier(0.4,0,0.2,1); --ease-out: cubic-bezier(0,0,0.2,1);
+            --sidebar-bg: #2D2C27; --sidebar-hover: rgba(255,255,255,0.04);
+            --sidebar-active: rgba(136,153,141,0.15); --sidebar-text: rgba(255,255,255,0.45); --sidebar-text-active: #88998D;
+        }
+        [data-theme="dark"] {
+            --bg-root: #1A1A17; --bg-surface: #21211D; --bg-card: #282723; --bg-elevated: #2E2D28;
+            --bg-hover: #33322D; --text-primary: #EDE8E2; --text-secondary: #B0ABA5; --text-muted: #7A7570;
+            --accent: #9BAEA1; --accent-hover: #AFC2B5; --accent-dark: #88998D;
+            --accent-light: rgba(155,174,161,0.1); --accent-glow: rgba(155,174,161,0.18); --accent-ghost: rgba(155,174,161,0.05);
+            --border: #2D2C28; --border-light: #242320;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.15); --shadow-md: 0 4px 16px rgba(0,0,0,0.25);
+            --shadow-lg: 0 8px 32px rgba(0,0,0,0.35); --shadow-xl: 0 16px 48px rgba(0,0,0,0.45);
+            --shadow-accent: 0 4px 20px rgba(155,174,161,0.1);
+            --sidebar-bg: #121210;
+        }
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        html{-webkit-font-smoothing:antialiased}
+        body{background:var(--bg-root);color:var(--text-primary);font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",-apple-system,BlinkMacSystemFont,sans-serif;line-height:1.6;transition:background 400ms var(--ease),color 400ms var(--ease)}
+        ::selection{background:var(--accent-light);color:var(--accent-dark)}
+        ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+        :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:2px}
+        @keyframes spin{to{transform:rotate(360deg)}}
+        .spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,0.3);border-top-color:#FFF;border-radius:50%;animation:spin 0.6s linear infinite;display:inline-block;flex-shrink:0}
+        a{color:inherit;text-decoration:none}
+
+        .app{display:flex;min-height:100vh}
+        .sidebar{width:230px;min-height:100vh;background:var(--sidebar-bg);display:flex;flex-direction:column;flex-shrink:0;position:fixed;left:0;top:0;bottom:0;z-index:100;border-right:1px solid rgba(255,255,255,0.05)}
+        .sidebar-brand{display:flex;align-items:center;gap:12px;padding:24px 22px;border-bottom:1px solid rgba(255,255,255,0.05)}
+        .sidebar-brand-icon{width:32px;height:32px;background:var(--accent);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;color:#FFF;font-size:15px;font-weight:900;font-family:"Noto Serif SC",serif;flex-shrink:0}
+        .sidebar-brand-text{font-size:1.05rem;font-weight:700;color:#FFF;letter-spacing:1px;font-family:"Noto Serif SC",serif}
+        .sidebar-brand-text em{font-style:normal;color:var(--accent)}
+        .sidebar-label{padding:20px 22px 8px;font-size:0.62rem;font-weight:700;color:rgba(255,255,255,0.2);letter-spacing:2px;text-transform:uppercase}
+        .sidebar-nav{padding:0 14px;flex:1}
+        .sidebar-item{display:flex;align-items:center;gap:12px;padding:11px 16px;border-radius:var(--radius-md);color:var(--sidebar-text);font-size:0.85rem;font-weight:500;cursor:pointer;transition:all 200ms var(--ease);margin-bottom:2px}
+        .sidebar-item:hover{background:var(--sidebar-hover);color:rgba(255,255,255,0.8)}
+        .sidebar-item.active{background:var(--sidebar-active);color:var(--sidebar-text-active);font-weight:600}
+        .sidebar-item svg{width:18px;height:18px;flex-shrink:0}
+        .sidebar-footer{padding:18px 22px;border-top:1px solid rgba(255,255,255,0.05)}
+        .sidebar-user{display:flex;align-items:center;gap:10px}
+        .sidebar-user-avatar{width:34px;height:34px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:0.72rem;font-weight:700;color:#FFF;flex-shrink:0}
+        .sidebar-user-info{min-width:0}
+        .sidebar-user-name{font-size:0.84rem;font-weight:600;color:#FFF;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .sidebar-user-role{font-size:0.68rem;color:var(--sidebar-text)}
+        .sidebar-back{display:flex;align-items:center;gap:8px;padding:9px 16px;border-radius:var(--radius-md);color:var(--sidebar-text);font-size:0.78rem;transition:all 200ms var(--ease);margin-top:10px}
+        .sidebar-back:hover{background:var(--sidebar-hover);color:rgba(255,255,255,0.8)}
+        .sidebar-back svg{width:16px;height:16px}
+
+        .main{margin-left:230px;flex:1;min-height:100vh;display:flex;flex-direction:column}
+        .topbar{background:var(--bg-card);border-bottom:1px solid var(--border-light);padding:0 32px;height:64px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;transition:background 400ms var(--ease)}
+        .topbar-title{font-size:0.9rem;font-weight:600;color:var(--text-primary);font-family:"Noto Serif SC",serif}
+        .topbar-right{display:flex;align-items:center;gap:16px}
+        .topbar-time{font-size:0.78rem;color:var(--text-muted);display:flex;align-items:center;gap:8px;font-family:"JetBrains Mono",monospace}
+        .topbar-time svg{width:14px;height:14px}
+        .theme-toggle{width:36px;height:36px;border-radius:50%;border:1px solid var(--border);background:var(--bg-elevated);color:var(--text-muted);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 200ms var(--ease)}
+        .theme-toggle:hover{border-color:var(--accent);color:var(--accent-dark)}
+        .theme-toggle svg{width:16px;height:16px}
+        .content{padding:28px 32px;flex:1}
+
+        .stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-bottom:28px}
+        .stat-card{background:var(--bg-card);border-radius:var(--radius-lg);border:1px solid var(--border);padding:24px;display:flex;align-items:center;gap:20px;box-shadow:var(--shadow-sm);animation:fadeUp 0.45s var(--ease-out) both;transition:background 400ms var(--ease)}
+        .stat-card:nth-child(2){animation-delay:70ms}.stat-card:nth-child(3){animation-delay:140ms}
+        @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+        .stat-icon{width:52px;height:52px;border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+        .stat-icon svg{width:24px;height:24px}
+        .stat-icon.sage{background:var(--accent-light);color:var(--accent-dark)}
+        .stat-icon.blue{background:rgba(91,127,158,0.1);color:#3B6F8E}
+        .stat-icon.green{background:rgba(91,140,90,0.1);color:#3D6E3C}
+        .stat-num{font-size:1.8rem;font-weight:700;color:var(--text-primary);line-height:1;margin-bottom:4px;letter-spacing:-0.5px;font-family:"JetBrains Mono",monospace}
+        .stat-label{font-size:0.82rem;color:var(--text-secondary);font-weight:500}
+
+        .chart-row{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px}
+        .chart-card{background:var(--bg-card);border-radius:var(--radius-lg);border:1px solid var(--border);padding:22px;box-shadow:var(--shadow-sm);transition:background 400ms var(--ease)}
+        .chart-card.full{grid-column:1/-1}
+        .chart-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+        .chart-title{font-size:0.92rem;font-weight:600;color:var(--text-primary);display:flex;align-items:center;gap:10px;font-family:"Noto Serif SC",serif}
+        .chart-title svg{width:16px;height:16px;color:var(--accent)}
+        .chart-box{width:100%;height:290px}
+
+        .content-card{background:var(--bg-card);border-radius:var(--radius-lg);border:1px solid var(--border);overflow:hidden;box-shadow:var(--shadow-sm);animation:fadeUp 0.45s var(--ease-out) both;transition:background 400ms var(--ease)}
+        .content-head{display:flex;align-items:center;justify-content:space-between;padding:20px 26px;border-bottom:1px solid var(--border-light)}
+        .content-title{font-size:0.92rem;font-weight:600;color:var(--text-primary);display:flex;align-items:center;gap:12px;font-family:"Noto Serif SC",serif}
+        .content-title svg{width:18px;height:18px;color:var(--accent)}
+        .content-title .count{font-size:0.7rem;color:var(--text-muted);padding:2px 10px;border:1px solid var(--border);border-radius:20px;font-family:"JetBrains Mono",monospace}
+        .content-body{padding:0}
+
+        .btn-primary{display:inline-flex;align-items:center;gap:7px;padding:9px 20px;border:none;border-radius:var(--radius-md);font-size:0.81rem;font-weight:600;cursor:pointer;transition:all 200ms var(--ease);font-family:inherit;background:var(--accent);color:#FFF}
+        .btn-primary:hover{background:var(--accent-dark);transform:translateY(-1px);box-shadow:var(--shadow-accent)}
+        .btn-primary svg{width:14px;height:14px}
+        .btn-sm{padding:5px 12px;font-size:0.74rem;border-radius:var(--radius-sm)}
+        .btn-outline{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border:1px solid var(--border);border-radius:var(--radius-md);font-size:0.74rem;font-weight:600;cursor:pointer;transition:all 200ms var(--ease);background:transparent;font-family:inherit}
+        .btn-outline svg{width:13px;height:13px}
+        .btn-danger{color:#C44E3D;border-color:rgba(196,78,61,0.2);background:rgba(196,78,61,0.06)}
+        .btn-danger:hover{background:#C44E3D;color:#FFF;border-color:#C44E3D}
+        .btn-success{color:#3D6E3C;border-color:rgba(61,110,60,0.2);background:rgba(61,110,60,0.06)}
+        .btn-success:hover{background:#5B8C5A;color:#FFF;border-color:#5B8C5A}
+        .btn-warning{color:#8E6B3B;border-color:rgba(142,107,59,0.2);background:rgba(142,107,59,0.06)}
+        .btn-warning:hover{background:#C4944A;color:#FFF;border-color:#C4944A}
+        .btn-edit{color:#3B6F8E;border-color:rgba(59,111,142,0.2);background:rgba(59,111,142,0.06)}
+        .btn-edit:hover{background:#5B7F9E;color:#FFF;border-color:#5B7F9E}
+
+        .table-wrap{overflow-x:auto}
+        .data-table{width:100%;border-collapse:collapse}
+        .data-table thead th{text-align:left;padding:11px 18px;font-size:0.7rem;font-weight:700;color:var(--text-muted);letter-spacing:0.8px;border-bottom:1px solid var(--border);background:var(--bg-surface);text-transform:uppercase}
+        .data-table tbody td{padding:14px 18px;font-size:0.83rem;color:var(--text-primary);border-bottom:1px solid var(--border-light);vertical-align:middle}
+        .data-table tbody tr:last-child td{border-bottom:none}
+        .data-table tbody tr:hover td{background:var(--accent-ghost)}
+        .col-id{color:var(--text-muted);font-size:0.72rem;font-weight:600;font-family:"JetBrains Mono",monospace}
+        .table-empty{text-align:center;padding:48px 24px;color:var(--text-muted);font-size:0.86rem}
+        .tag-role{display:inline-flex;padding:3px 10px;border-radius:20px;font-size:0.68rem;font-weight:700;letter-spacing:0.3px}
+        .tag-admin{background:var(--accent-light);color:var(--accent-dark)}
+        .tag-user{background:var(--bg-hover);color:var(--text-muted)}
+        .tag-status{display:inline-flex;align-items:center;gap:5px;font-size:0.75rem;font-weight:600}
+        .tag-status svg{width:13px;height:13px}
+        .tag-status.active{color:#3D6E3C}.tag-status.banned{color:#C44E3D}
+        .tag-status.passed{color:#3D6E3C}.tag-status.rejected{color:#C44E3D}
+        .tag-category{display:inline-flex;padding:3px 10px;border:1px solid var(--border);color:var(--text-muted);border-radius:20px;font-size:0.72rem;font-weight:600}
+        .text-ellipsis{max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+        .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.3);backdrop-filter:blur(8px);display:flex;justify-content:center;align-items:center;z-index:1000;padding:24px}
+        .modal-box{background:var(--bg-elevated);border-radius:var(--radius-xl);width:100%;max-width:600px;box-shadow:var(--shadow-xl);border:1px solid var(--border);animation:modalIn 0.35s var(--ease-out)}
+        @keyframes modalIn{from{opacity:0;transform:scale(0.95) translateY(12px)}to{opacity:1;transform:scale(1) translateY(0)}}
+        .modal-head{display:flex;align-items:center;justify-content:space-between;padding:26px 30px 18px;border-bottom:1px solid var(--border-light)}
+        .modal-title{font-size:1.05rem;font-weight:700;color:var(--text-primary);font-family:"Noto Serif SC",serif}
+        .close-btn{width:32px;height:32px;border-radius:50%;border:none;background:var(--bg-hover);color:var(--text-muted);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 200ms var(--ease)}
+        .close-btn:hover{background:var(--border);color:var(--text-primary)}
+        .close-btn svg{width:15px;height:15px}
+        .modal-body{padding:22px 30px}
+        .form-row{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+        .form-group{margin-bottom:18px}
+        .form-label{display:block;font-size:0.78rem;font-weight:600;color:var(--text-secondary);margin-bottom:7px}
+        .form-label .req{color:#C44E3D}
+        .form-input,.form-textarea{width:100%;padding:11px 15px;font-size:0.86rem;border:1px solid var(--border);border-radius:var(--radius-md);background:var(--bg-surface);color:var(--text-primary);outline:none;transition:all 200ms var(--ease);font-family:inherit}
+        .form-input::placeholder,.form-textarea::placeholder{color:var(--text-muted)}
+        .form-input:focus,.form-textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow);background:var(--bg-card)}
+        .form-textarea{resize:vertical;min-height:95px}
+        .modal-foot{display:flex;justify-content:flex-end;gap:10px;padding:18px 30px 28px}
+        .btn-cancel{padding:10px 22px;background:var(--bg-surface);color:var(--text-secondary);border:1px solid var(--border);border-radius:var(--radius-md);font-size:0.83rem;font-weight:600;cursor:pointer;transition:all 200ms var(--ease);font-family:inherit}
+        .btn-cancel:hover{background:var(--border)}
+        .btn-save{padding:10px 26px;border:none;border-radius:var(--radius-md);font-size:0.83rem;font-weight:600;cursor:pointer;transition:all 200ms var(--ease);font-family:inherit;background:var(--accent);color:#FFF}
+        .btn-save:hover{background:var(--accent-dark)}.btn-save:disabled{opacity:0.4;cursor:not-allowed}
+
+        .toast-container{position:fixed;top:80px;right:24px;z-index:1100;display:flex;flex-direction:column;gap:10px}
+        .toast{background:var(--bg-elevated);border-radius:var(--radius-md);box-shadow:var(--shadow-lg);padding:13px 16px;display:flex;align-items:center;gap:12px;font-size:0.86rem;color:var(--text-primary);min-width:260px;max-width:380px;border-left:3px solid;animation:toastIn 0.3s var(--ease-out);position:relative;overflow:hidden;border:1px solid var(--border)}
+        .toast.success{border-left-color:#5B8C5A}.toast.error{border-left-color:#C44E3D}.toast.warning{border-left-color:#C4944A}.toast.info{border-left-color:#5B7F9E}
+        .toast svg{width:18px;height:18px;flex-shrink:0}
+        .toast.success svg{color:#5B8C5A}.toast.error svg{color:#C44E3D}.toast.warning svg{color:#C4944A}.toast.info svg{color:#5B7F9E}
+        .toast-bar{position:absolute;bottom:0;left:0;height:2px;animation:toastBar 2.8s linear forwards}
+        .toast.success .toast-bar{background:#5B8C5A}.toast.error .toast-bar{background:#C44E3D}.toast.warning .toast-bar{background:#C4944A}.toast.info .toast-bar{background:#5B7F9E}
+        @keyframes toastIn{from{transform:translateX(110%);opacity:0}to{transform:translateX(0);opacity:1}}
+        @keyframes toastBar{from{width:100%}to{width:0%}}
+        .toast-close{margin-left:auto;cursor:pointer;opacity:0.35;transition:opacity 150ms;display:flex}
+        .toast-close:hover{opacity:1}.toast-close svg{width:14px;height:14px;color:var(--text-muted)}
+
+        @media(max-width:1024px){.sidebar{width:190px}.main{margin-left:190px}.stats-grid{grid-template-columns:1fr 1fr}.chart-row{grid-template-columns:1fr}.form-row{grid-template-columns:1fr}}
+        @media(max-width:768px){.sidebar{display:none}.main{margin-left:0}.stats-grid{grid-template-columns:1fr}.content{padding:22px 16px}.topbar{padding:0 16px}}
+    </style>
+</head>
+<body>
+<div id="app">
+    <div class="toast-container">
+        <div v-for="t in toasts" :key="t.id" class="toast" :class="t.type">
+            <svg v-if="t.type==='success'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            <svg v-else-if="t.type==='error'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+            <svg v-else-if="t.type==='warning'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            <span>{{t.message}}</span>
+            <span class="toast-close" @click="dismissToast(t.id)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
+            <div class="toast-bar"></div>
+        </div>
+    </div>
+
+    <div class="app">
+        <aside class="sidebar">
+            <div class="sidebar-brand"><span class="sidebar-brand-icon">阅</span><span class="sidebar-brand-text">知<em>阅</em> 管理</span></div>
+            <div class="sidebar-label">导航</div>
+            <nav class="sidebar-nav">
+                <div class="sidebar-item" :class="{active:tab==='stats'}" @click="tab='stats'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>数据概览</div>
+                <div class="sidebar-item" :class="{active:tab==='books'}" @click="tab='books'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>图书管理</div>
+                <div class="sidebar-item" :class="{active:tab==='users'}" @click="tab='users'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>用户管理</div>
+                <div class="sidebar-item" :class="{active:tab==='reviews'}" @click="tab='reviews'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>书评审核</div>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="sidebar-user"><div class="sidebar-user-avatar">{{currentUser&&(currentUser.nickname||currentUser.username)[0].toUpperCase()}}</div><div class="sidebar-user-info"><div class="sidebar-user-name">{{currentUser&&(currentUser.nickname||currentUser.username)}}</div><div class="sidebar-user-role">管理员</div></div></div>
+                <a href="/profile.html" class="sidebar-back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>个人中心</a>
+                <a href="/index.html" class="sidebar-back"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>返回首页</a>
+            </div>
+        </aside>
+
+        <div class="main">
+            <header class="topbar">
+                <div class="topbar-title"><span v-if="tab==='stats'">数据概览</span><span v-if="tab==='books'">图书管理</span><span v-if="tab==='users'">用户管理</span><span v-if="tab==='reviews'">书评审核</span></div>
+                <div class="topbar-right">
+                    <div class="topbar-time"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>{{currentTime}}</div>
+                    <button class="theme-toggle" @click="toggleTheme" :title="isDark?'亮色':'暗色'">
+                        <svg v-if="!isDark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                        <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                    </button>
+                </div>
+            </header>
+
+            <div class="content">
+                <div v-if="tab==='stats'">
+                    <div class="stats-grid">
+                        <div class="stat-card"><div class="stat-icon sage"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div><div><div class="stat-num">{{totalBooks}}</div><div class="stat-label">图书总数</div></div></div>
+                        <div class="stat-card"><div class="stat-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><div><div class="stat-num">{{totalUsers}}</div><div class="stat-label">用户总数</div></div></div>
+                        <div class="stat-card"><div class="stat-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div><div><div class="stat-num">{{totalRatings}}</div><div class="stat-label">评分总数</div></div></div>
+                    </div>
+                    <div class="chart-row">
+                        <div class="chart-card"><div class="chart-head"><div class="chart-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>分类占比</div></div><div id="pieChart" class="chart-box"></div></div>
+                        <div class="chart-card"><div class="chart-head"><div class="chart-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>高分图书 TOP 5</div></div><div id="barChart" class="chart-box"></div></div>
+                    </div>
+                    <div class="chart-row"><div class="chart-card full"><div class="chart-head"><div class="chart-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>用户增长趋势</div></div><div id="lineChart" class="chart-box"></div></div></div>
+                </div>
+
+                <div v-if="tab==='books'">
+                    <div class="content-card">
+                        <div class="content-head"><div class="content-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>图书列表 <span class="count">{{bookList.length}}</span></div><button class="btn-primary" @click="openBookModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>新增</button></div>
+                        <div class="content-body"><div class="table-wrap"><table class="data-table"><thead><tr><th>ID</th><th>书名</th><th>作者</th><th>分类</th><th>简介</th><th>操作</th></tr></thead><tbody>
+                            <tr v-for="book in bookList" :key="book.id"><td class="col-id">{{book.id}}</td><td style="font-weight:600">{{book.title}}</td><td style="color:var(--text-secondary)">{{book.author}}</td><td><span class="tag-category">{{book.category}}</span></td><td><div class="text-ellipsis" :title="book.description">{{book.description||'-'}}</div></td><td><div style="display:flex;gap:6px"><button class="btn-outline btn-edit btn-sm" @click="openBookModal(book)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>编辑</button><button class="btn-outline btn-danger btn-sm" @click="deleteBook(book.id)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>删除</button></div></td></tr>
+                            <tr v-if="bookList.length===0"><td colspan="6"><div class="table-empty">暂无图书数据</div></td></tr>
+                        </tbody></table></div></div>
+                    </div>
+                </div>
+
+                <div v-if="tab==='users'">
+                    <div class="content-card">
+                        <div class="content-head"><div class="content-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>用户列表 <span class="count">{{userList.length}}</span></div></div>
+                        <div class="content-body"><div class="table-wrap"><table class="data-table"><thead><tr><th>ID</th><th>用户名</th><th>昵称</th><th>角色</th><th>状态</th><th>注册时间</th><th>操作</th></tr></thead><tbody>
+                            <tr v-for="user in userList" :key="user.id"><td class="col-id">{{user.id}}</td><td style="font-weight:600">{{user.username}}</td><td style="color:var(--text-secondary)">{{user.nickname||'-'}}</td><td><span class="tag-role" :class="user.role===1?'tag-admin':'tag-user'">{{user.role===1?'管理员':'用户'}}</span></td><td><span class="tag-status" :class="user.status===1?'active':'banned'"><svg v-if="user.status===1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>{{user.status===1?'正常':'封禁'}}</span></td><td style="color:var(--text-muted);font-size:0.78rem">{{formatDate(user.createTime)}}</td><td><div style="display:flex;gap:6px"><button v-if="user.status===1" class="btn-outline btn-warning btn-sm" @click="toggleUserStatus(user.id,0)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>封禁</button><button v-else class="btn-outline btn-success btn-sm" @click="toggleUserStatus(user.id,1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>解封</button><button class="btn-outline btn-danger btn-sm" @click="deleteUser(user.id)" v-if="user.role!==1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>删除</button></div></td></tr>
+                            <tr v-if="userList.length===0"><td colspan="7"><div class="table-empty">暂无用户数据</div></td></tr>
+                        </tbody></table></div></div>
+                    </div>
+                </div>
+
+                <div v-if="tab==='reviews'">
+                    <div class="content-card">
+                        <div class="content-head"><div class="content-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>书评列表 <span class="count">{{reviewList.length}}</span></div></div>
+                        <div class="content-body"><div class="table-wrap"><table class="data-table"><thead><tr><th>ID</th><th>图书</th><th>用户</th><th>内容</th><th>状态</th><th>时间</th><th>操作</th></tr></thead><tbody>
+                            <tr v-for="review in reviewList" :key="review.id"><td class="col-id">{{review.id}}</td><td style="font-weight:600;font-size:0.81rem">{{review.bookTitle||'-'}}</td><td style="color:var(--text-secondary)">{{review.nickname}}</td><td><div class="text-ellipsis" :title="review.content">{{review.content}}</div></td><td><span class="tag-status" :class="review.status===1?'passed':'rejected'"><svg v-if="review.status===1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>{{review.status===1?'已通过':'已驳回'}}</span></td><td style="color:var(--text-muted);font-size:0.78rem">{{formatDate(review.create_time)}}</td><td><div style="display:flex;gap:6px"><button v-if="review.status!==1" class="btn-outline btn-success btn-sm" @click="auditReview(review.id,1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>通过</button><button v-else class="btn-outline btn-warning btn-sm" @click="auditReview(review.id,0)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>驳回</button></div></td></tr>
+                            <tr v-if="reviewList.length===0"><td colspan="7"><div class="table-empty">暂无书评数据</div></td></tr>
+                        </tbody></table></div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" v-if="showBookModal" @click.self="showBookModal=false">
+        <div class="modal-box">
+            <div class="modal-head"><h2 class="modal-title">{{editingBook.id?'编辑图书':'新增图书'}}</h2><button class="close-btn" @click="showBookModal=false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+            <div class="modal-body">
+                <div class="form-row"><div class="form-group"><label class="form-label">书名 <span class="req">*</span></label><input class="form-input" v-model="editingBook.title" placeholder="请输入书名"></div><div class="form-group"><label class="form-label">作者 <span class="req">*</span></label><input class="form-input" v-model="editingBook.author" placeholder="请输入作者"></div></div>
+                <div class="form-row"><div class="form-group"><label class="form-label">分类 <span class="req">*</span></label><input class="form-input" v-model="editingBook.category" placeholder="如：科幻、历史"></div><div class="form-group"><label class="form-label">封面链接</label><input class="form-input" v-model="editingBook.coverUrl" placeholder="可选"></div></div>
+                <div class="form-group"><label class="form-label">简介</label><textarea class="form-textarea" v-model="editingBook.description" rows="4" placeholder="图书简介…"></textarea></div>
+            </div>
+            <div class="modal-foot"><button class="btn-cancel" @click="showBookModal=false">取消</button><button class="btn-save" @click="saveBook" :disabled="!editingBook.title||!editingBook.author||!editingBook.category||isSaving"><span v-if="isSaving" class="spinner" style="width:14px;height:14px;border-width:2px"></span><svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;margin-right:4px"><polyline points="20 6 9 17 4 12"/></svg>{{isSaving?'保存中…':'保存'}}</button></div>
+        </div>
+    </div>
+</div>
+
+<script>
+new Vue({
+    el:'#app',
+    data:{tab:'stats',currentUser:null,currentTime:'',toasts:[],bookList:[],userList:[],reviewList:[],totalBooks:0,totalUsers:0,totalRatings:0,showBookModal:false,isSaving:false,editingBook:{id:null,title:'',author:'',category:'',coverUrl:'',description:''},isDark:false,_chartData:null,_refreshTimer:null},
+    mounted:function(){this.initTheme();this.updateTime();setInterval(this.updateTime.bind(this),60000);var u=sessionStorage.getItem("loginUser");if(!u){window.location.href='/index.html';return}this.currentUser=JSON.parse(u);if(this.currentUser.role!==1){window.location.href='/index.html';return}this.loadAllData();this.startAutoRefresh();document.addEventListener('keydown',this.handleKeydown)},
+    beforeDestroy:function(){if(this._refreshTimer)clearInterval(this._refreshTimer);document.removeEventListener('keydown',this.handleKeydown)},
+    watch:{tab:function(v){if(v==='stats'){var s=this;this.$nextTick(function(){s.drawCharts(s._chartData)})}}},
+    methods:{
+        updateTime:function(){var d=new Date();this.currentTime=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')+' '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')},
+        initTheme:function(){var s=localStorage.getItem('theme');if(s==='dark'){this.isDark=true;document.documentElement.setAttribute('data-theme','dark')}else{this.isDark=false;document.documentElement.removeAttribute('data-theme')}},
+        toggleTheme:function(){this.isDark=!this.isDark;if(this.isDark){document.documentElement.setAttribute('data-theme','dark');localStorage.setItem('theme','dark')}else{document.documentElement.removeAttribute('data-theme');localStorage.setItem('theme','light')}},
+        showToast:function(m,t){t=t||'success';var id=Date.now()+Math.random();this.toasts.push({id:id,message:m,type:t});setTimeout(function(){this.dismissToast(id)}.bind(this),2800)},
+        dismissToast:function(id){this.toasts=this.toasts.filter(function(t){return t.id!==id})},
+        handleKeydown:function(e){if(e.key==='Escape'&&this.showBookModal){this.showBookModal=false}},
+        startAutoRefresh:function(){var s=this;this._refreshTimer=setInterval(function(){if(s.tab==='stats')s.fetchStats()},30000)},
+        loadAllData:function(){this.fetchBooks();this.fetchUsers();this.fetchReviews();this.fetchStats()},
+        fetchBooks:function(){fetch('/api/book/list').then(function(r){return r.json()}).then(function(r){if(r.code===200)this.bookList=r.data}.bind(this))},
+        fetchUsers:function(){fetch('/api/admin/user/list',{credentials:'include'}).then(function(r){return r.json()}).then(function(r){if(r.code===200)this.userList=r.data;else if(r.code===403){this.showToast('权限不足','error');window.location.href='/index.html'}}.bind(this))},
+        fetchReviews:function(){fetch('/api/admin/review/list',{credentials:'include'}).then(function(r){return r.json()}).then(function(r){if(r.code===200)this.reviewList=r.data}.bind(this))},
+        fetchStats:function(){fetch('/api/stats/dashboard',{credentials:'include'}).then(function(r){return r.json()}).then(function(r){if(r.code===200){this.totalBooks=r.data.totalBooks||0;this.totalUsers=r.data.totalUsers||0;this.totalRatings=r.data.totalRatings||0;this._chartData=r.data;if(this.tab==='stats'){var s=this;this.$nextTick(function(){s.drawCharts(r.data)})}}else this.showToast(r.msg||'获取统计数据失败','error')}.bind(this)).catch(function(){this.showToast('获取统计数据失败','warning')}.bind(this))},
+        drawCharts:function(d){if(!d)return;var tc=this.isDark?'#B0ABA5':'#6B6762';var ac=this.isDark?'#2D2C28':'#E8E5E1';var bg=this.isDark?'#282723':'#FDFCFB';var s=this;
+            try{var pd=document.getElementById('pieChart');if(pd){var p=echarts.init(pd);p.setOption({tooltip:{trigger:'item',backgroundColor:'#282723',borderColor:'#2D2C28',textStyle:{color:'#EDE8E2'}},legend:{right:'3%',top:'center',orient:'vertical',height:'55%',textStyle:{fontSize:13,color:tc},itemGap:12,itemWidth:10,itemHeight:10},color:['#88998D','#5B7F9E','#5B8C5A','#C44E3D','#A89B8D','#C4944A','#7B8FB5','#6DA06D','#B56959','#8E7F73','#D4A85C'],series:[{type:'pie',center:['38%','48%'],radius:['42%','68%'],avoidLabelOverlap:true,itemStyle:{borderRadius:5,borderColor:bg,borderWidth:2},label:{fontSize:13,color:tc,formatter:'{b} {d}%'},labelLine:{length:18,length2:14},data:d.categoryData||[]}]})}}catch(e){}
+            try{var bd=document.getElementById('barChart');if(bd){var b=echarts.init(bd);var ns=(d.topBooksData||[]).map(function(i){return i.name});var ss=(d.topBooksData||[]).map(function(i){return i.value});b.setOption({tooltip:{trigger:'axis',backgroundColor:'#282723',borderColor:'#2D2C28',textStyle:{color:'#EDE8E2'}},grid:{left:'3%',right:'12%',bottom:'3%',top:'8%',containLabel:true},xAxis:{type:'value',max:5,splitLine:{lineStyle:{type:'dashed',color:ac}},axisLabel:{color:tc}},yAxis:{type:'category',data:ns,inverse:true,axisLabel:{color:s.isDark?'#EDE8E2':'#1F1D1A',fontSize:12},axisLine:{show:false},axisTick:{show:false}},series:[{type:'bar',data:ss,itemStyle:{color:new echarts.graphic.LinearGradient(0,0,1,0,[{offset:0,color:'#6B7D70'},{offset:1,color:'#88998D'}]),borderRadius:[0,4,4,0]},label:{show:true,position:'right',formatter:'{c} 分',color:tc,fontSize:12},barMaxWidth:18}]})}}catch(e){}
+            try{if(d.userGrowthData&&d.userGrowthData.length>0){var ld=document.getElementById('lineChart');if(ld){var l=echarts.init(ld);var ms=d.userGrowthData.map(function(i){return i.month});var cs=d.userGrowthData.map(function(i){return i.count});l.setOption({tooltip:{trigger:'axis',backgroundColor:'#282723',borderColor:'#2D2C28',textStyle:{color:'#EDE8E2'}},grid:{left:'3%',right:'5%',bottom:'3%',top:'10%',containLabel:true},xAxis:{type:'category',data:ms,boundaryGap:false,axisLabel:{color:tc},axisLine:{lineStyle:{color:ac}},splitLine:{show:false}},yAxis:{type:'value',minInterval:1,axisLabel:{color:tc},splitLine:{lineStyle:{type:'dashed',color:ac}}},series:[{type:'line',data:cs,smooth:0.4,itemStyle:{color:'#88998D'},areaStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'rgba(136,153,141,0.18)'},{offset:1,color:'rgba(136,153,141,0)'}])},lineStyle:{width:2.5},symbol:'circle',symbolSize:6,label:{show:true,position:'top',fontSize:11,color:tc,formatter:'{c}'}}]})}}}catch(e){}},
+        openBookModal:function(b){if(b){this.editingBook={id:b.id,title:b.title,author:b.author,category:b.category,coverUrl:b.coverUrl,description:b.description}}else{this.editingBook={id:null,title:'',author:'',category:'',coverUrl:'',description:''}}this.showBookModal=true},
+        saveBook:function(){if(!this.editingBook.title||!this.editingBook.author||!this.editingBook.category){this.showToast('请填写完整必填项','error');return}this.isSaving=true;var u=this.editingBook.id?'/api/admin/book/update':'/api/admin/book/add';fetch(u,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(this.editingBook),credentials:'include'}).then(function(r){return r.json()}).then(function(r){if(r.code===200){this.showToast(r.msg);this.showBookModal=false;this.fetchBooks()}else this.showToast(r.msg,'error')}.bind(this)).catch(function(){this.showToast('网络异常，保存失败','error')}.bind(this)).finally(function(){this.isSaving=false}.bind(this))},
+        deleteBook:function(id){if(!confirm('确定删除该图书吗？'))return;fetch('/api/admin/book/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:id}),credentials:'include'}).then(function(r){return r.json()}).then(function(r){if(r.code===200){this.showToast(r.msg);this.fetchBooks()}else this.showToast(r.msg,'error')}.bind(this))},
+        toggleUserStatus:function(id,s){var a=s===1?'解封':'封禁';if(!confirm('确定'+a+'该用户吗？'))return;fetch('/api/admin/user/status',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:id,status:s}),credentials:'include'}).then(function(r){return r.json()}).then(function(r){if(r.code===200){this.showToast(r.msg);this.fetchUsers()}else this.showToast(r.msg,'error')}.bind(this))},
+        deleteUser:function(id){if(!confirm('确定删除该用户吗？此操作不可恢复！'))return;fetch('/api/admin/user/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:id}),credentials:'include'}).then(function(r){return r.json()}).then(function(r){if(r.code===200){this.showToast(r.msg);this.fetchUsers()}else this.showToast(r.msg,'error')}.bind(this))},
+        auditReview:function(id,s){fetch('/api/admin/review/audit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:id,status:s}),credentials:'include'}).then(function(r){return r.json()}).then(function(r){if(r.code===200){this.showToast(r.msg);this.fetchReviews()}else this.showToast(r.msg,'error')}.bind(this))},
+        formatDate:function(d){if(!d)return'-';var dt=new Date(d);return dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0')}
+    }
+})
+</script>
+</body>
+</html>

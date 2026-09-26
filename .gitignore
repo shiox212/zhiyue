@@ -1,0 +1,37 @@
+# Local secrets and environment overrides
+.env
+.env.*
+!.env.example
+!frontend/.env.example
+*.local
+
+# Java / Maven
+target/
+*.class
+*.log
+logs/
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/coverage/
+frontend/playwright-report/
+frontend/test-results/
+
+# IDE and operating-system files
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+
+# Local databases, generated indexes and backups
+database/backups/
+data/
+uploads/
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+

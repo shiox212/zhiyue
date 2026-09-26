@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>知阅 — 每一本书，都懂你</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;600;700;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.14/vue.min.js"></script>
+    <style>
+        :root {
+            --bg-root:#F6F4F1;--bg-surface:#EEECE8;--bg-card:#FDFCFB;--bg-elevated:#FFF;
+            --bg-hover:#F0EDE9;--text-primary:#1F1D1A;--text-secondary:#6B6762;--text-muted:#9B9690;
+            --accent:#88998D;--accent-hover:#7A8D80;--accent-dark:#6B7D70;
+            --accent-light:rgba(136,153,141,0.08);--accent-glow:rgba(136,153,141,0.15);--accent-ghost:rgba(136,153,141,0.04);
+            --border:#E8E5E1;--border-light:#F0EDE9;
+            --shadow-sm:0 1px 3px rgba(0,0,0,0.04);--shadow-md:0 4px 16px rgba(0,0,0,0.05);
+            --shadow-lg:0 8px 32px rgba(0,0,0,0.07);--shadow-xl:0 16px 48px rgba(0,0,0,0.09);
+            --shadow-accent:0 4px 20px rgba(136,153,141,0.12);
+            --sidebar-w:220px;--radius-sm:4px;--radius-md:8px;--radius-lg:16px;--radius-xl:24px;
+            --ease:cubic-bezier(0.4,0,0.2,1);--ease-spring:cubic-bezier(0.34,1.56,0.64,1);--ease-out:cubic-bezier(0,0,0.2,1);
+        }
+        [data-theme="dark"]{
+            --bg-root:#1A1A17;--bg-surface:#21211D;--bg-card:#282723;--bg-elevated:#2E2D28;
+            --bg-hover:#33322D;--text-primary:#EDE8E2;--text-secondary:#B0ABA5;--text-muted:#7A7570;
+            --accent:#9BAEA1;--accent-hover:#AFC2B5;--accent-dark:#88998D;
+            --accent-light:rgba(155,174,161,0.1);--accent-glow:rgba(155,174,161,0.18);--accent-ghost:rgba(155,174,161,0.05);
+            --border:#2D2C28;--border-light:#242320;
+            --shadow-sm:0 1px 3px rgba(0,0,0,0.15);--shadow-md:0 4px 16px rgba(0,0,0,0.25);
+            --shadow-lg:0 8px 32px rgba(0,0,0,0.35);--shadow-xl:0 16px 48px rgba(0,0,0,0.45);
+            --shadow-accent:0 4px 20px rgba(155,174,161,0.1);
+        }
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        html{-webkit-font-smoothing:antialiased}
+        body{background:var(--bg-root);color:var(--text-primary);font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",-apple-system,BlinkMacSystemFont,sans-serif;line-height:1.6;transition:background 400ms var(--ease),color 400ms var(--ease);min-height:100vh}
+        ::selection{background:var(--accent-light);color:var(--accent-dark)}
+        ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+        :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:2px}
+        a{color:inherit;text-decoration:none}
+        @keyframes spin{to{transform:rotate(360deg)}}
+        .spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,0.3);border-top-color:#FFF;border-radius:50%;animation:spin 0.6s linear infinite;display:inline-block;flex-shrink:0}
+
+        .top-bar{position:sticky;top:0;z-index:100;padding:0 36px;height:64px;display:flex;align-items:center;justify-content:space-between;background:rgba(246,244,241,0.85);backdrop-filter:blur(16px) saturate(180%);border-bottom:1px solid var(--border);transition:background 400ms var(--ease)}
+        [data-theme="dark"] .top-bar{background:rgba(26,26,23,0.88)}
+        .brand{display:flex;align-items:center;gap:12px;flex-shrink:0}
+        .brand-mark{width:34px;height:34px;background:var(--accent);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;color:#FFF;font-size:16px;font-weight:900;font-family:"Noto Serif SC",serif}
+        .brand-name{font-size:1.15rem;font-weight:700;color:var(--text-primary);letter-spacing:2px;font-family:"Noto Serif SC",serif}
+        .brand-name em{font-style:normal;color:var(--accent-dark)}
+        .top-right{display:flex;align-items:center;gap:20px;margin-left:auto}
+        .nav-links{display:flex;align-items:center;gap:6px}
+        .nav-link{display:flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--radius-md);font-size:0.82rem;color:var(--text-secondary);transition:all 200ms var(--ease);cursor:pointer;border:none;background:none;font-family:inherit}
+        .nav-link:hover{background:var(--accent-light);color:var(--accent-dark)}
+        .nav-link svg{width:16px;height:16px}
+        .theme-toggle{width:36px;height:36px;border-radius:50%;border:1px solid var(--border);background:var(--bg-card);color:var(--text-muted);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 200ms var(--ease);flex-shrink:0}
+        .theme-toggle:hover{border-color:var(--accent);color:var(--accent-dark)}
+        .theme-toggle svg{width:16px;height:16px}
+        .nav-user{position:relative;display:flex;align-items:center;gap:8px;padding:4px 12px 4px 4px;border-radius:24px;background:var(--accent-ghost);border:1px solid transparent;transition:border-color 200ms var(--ease);cursor:pointer;z-index:101;flex-shrink:0}
+        .nav-user:hover{border-color:var(--accent)}
+        .nav-user-avatar{width:28px;height:28px;border-radius:50%;background:var(--accent);color:#FFF;display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700}
+        .nav-user-name{color:var(--text-primary);font-weight:600;font-size:0.82rem}
+        .nav-user-arrow{color:var(--text-muted);transition:transform 200ms var(--ease);display:flex}
+        .nav-user:hover .nav-user-arrow{transform:rotate(180deg)}
+        .nav-user-arrow svg{width:14px;height:14px}
+        .user-dropdown{position:absolute;top:calc(100% + 8px);right:0;width:220px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow-xl);opacity:0;visibility:hidden;transform:translateY(-6px);transition:all 200ms var(--ease-out);overflow:hidden;z-index:102}
+        .nav-user:hover .user-dropdown{opacity:1;visibility:visible;transform:translateY(0)}
+        .dropdown-header{display:flex;align-items:center;gap:12px;padding:16px 18px 12px}
+        .dropdown-avatar{width:40px;height:40px;border-radius:50%;background:var(--accent);color:#FFF;display:flex;align-items:center;justify-content:center;font-size:0.9rem;font-weight:700;flex-shrink:0}
+        .dropdown-info{min-width:0}
+        .dropdown-name{font-size:0.88rem;font-weight:600;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .dropdown-role{font-size:0.72rem;color:var(--text-muted)}
+        .dropdown-divider{height:1px;background:var(--border-light);margin:0 12px}
+        .dropdown-item{display:flex;align-items:center;gap:10px;padding:10px 18px;font-size:0.84rem;color:var(--text-secondary);cursor:pointer;transition:all 150ms var(--ease)}
+        .dropdown-item:hover{background:var(--accent-light);color:var(--accent-dark)}
+        .dropdown-item svg{width:15px;height:15px}
+        .dropdown-item.logout{color:var(--text-secondary)}
+        .dropdown-item.logout:hover{background:rgba(196,78,61,0.06);color:#C44E3D}
+
+        .layout{display:flex;min-height:calc(100vh - 64px);position:relative}
+        .sidebar{width:var(--sidebar-w);flex-shrink:0;background:var(--bg-surface);border-right:1px solid var(--border);padding:24px 0;position:sticky;top:64px;height:calc(100vh - 64px);overflow-y:auto;z-index:50;transition:background 400ms var(--ease)}
+        .sidebar::-webkit-scrollbar{width:3px}
+        .sidebar-label{padding:0 20px 12px;font-size:0.62rem;font-weight:700;color:var(--text-muted);letter-spacing:2px;text-transform:uppercase}
+        .sidebar-item{display:flex;align-items:center;gap:10px;padding:10px 20px;font-size:0.85rem;color:var(--text-secondary);cursor:pointer;transition:all 180ms var(--ease);font-weight:500;position:relative}
+        .sidebar-item:hover{background:var(--accent-ghost);color:var(--accent-dark)}
+        .sidebar-item.active{background:var(--accent-light);color:var(--accent-dark);font-weight:600}
+        .sidebar-item.active::before{content:'';position:absolute;left:0;top:8px;bottom:8px;width:3px;background:var(--accent);border-radius:0 2px 2px 0}
+        .sidebar-item svg{width:17px;height:17px;flex-shrink:0}
+        .sidebar-item .expand-arrow{margin-left:auto;transition:transform 200ms var(--ease);display:flex}
+        .sidebar-item .expand-arrow.open{transform:rotate(90deg)}
+        .sidebar-item .expand-arrow svg{width:14px;height:14px}
+        .sidebar-sub{padding:0 0 4px;overflow:hidden;transition:max-height 300ms var(--ease-out)}
+        .sidebar-sub-item{display:flex;align-items:center;gap:8px;padding:7px 20px 7px 47px;font-size:0.8rem;color:var(--text-muted);cursor:pointer;transition:all 150ms var(--ease);justify-content:space-between}
+        .sidebar-sub-item:hover{color:var(--accent-dark)}
+        .sidebar-sub-item.active{color:var(--accent-dark);font-weight:600}
+        .sidebar-sub-count{font-size:0.68rem;color:var(--text-muted);font-family:"JetBrains Mono",monospace;opacity:0.7}
+        .sidebar-sub-item.active .sidebar-sub-count{opacity:1}
+        .sidebar-divider{height:1px;background:var(--border);margin:10px 16px}
+
+        .main-content{flex:1;min-width:0}
+
+        .hero{text-align:center;padding:72px 24px 40px;position:relative}
+        .hero::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:500px;height:500px;background:radial-gradient(circle,var(--accent-glow) 0%,transparent 70%);pointer-events:none;opacity:0.4}
+        .hero-seal{display:inline-flex;align-items:center;gap:10px;padding:6px 20px;border:1px solid var(--accent);color:var(--accent-dark);border-radius:3px;font-size:0.72rem;font-weight:600;letter-spacing:2px;margin-bottom:28px;font-family:"Noto Serif SC",serif;background:var(--accent-ghost);text-transform:uppercase;position:relative}
+        .hero-seal::before{content:'\25C6';font-size:6px;opacity:0.7}
+        .hero-seal::after{content:'\25C6';font-size:6px;opacity:0.7}
+        .hero-title{font-size:clamp(2rem,4.5vw,3rem);font-weight:900;color:var(--text-primary);letter-spacing:3px;line-height:1.2;margin-bottom:16px;font-family:"Noto Serif SC",serif;position:relative}
+        .hero-title em{font-style:normal;color:var(--accent-dark)}
+        .hero-sub{font-size:0.95rem;color:var(--text-secondary);max-width:400px;margin:0 auto 36px;line-height:1.7;font-weight:400;position:relative}
+        .search-wrap{max-width:540px;margin:0 auto;position:relative}
+        .search-inner{display:flex;align-items:center;border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--bg-card);transition:all 250ms var(--ease);box-shadow:var(--shadow-sm)}
+        .search-inner:focus-within{border-color:var(--accent);box-shadow:0 0 0 4px var(--accent-glow)}
+        .search-icon{padding:0 0 0 18px;color:var(--text-muted);display:flex}
+        .search-icon svg{width:18px;height:18px}
+        .search-input{flex:1;padding:13px 12px;border:none;background:transparent;font-size:0.9rem;color:var(--text-primary);outline:none;font-family:inherit}
+        .search-input::placeholder{color:var(--text-muted)}
+        .search-btn{padding:9px 22px;margin:4px;background:var(--accent);color:#FFF;border:none;border-radius:var(--radius-md);font-size:0.82rem;font-weight:700;cursor:pointer;transition:all 200ms var(--ease);font-family:inherit;letter-spacing:0.5px;white-space:nowrap}
+        .search-btn:hover{background:var(--accent-dark);transform:translateY(-1px)}
+        .search-history{position:absolute;top:calc(100% + 8px);left:0;right:0;background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow-xl);z-index:9999;overflow:hidden;animation:fadeDrop 0.2s var(--ease-out)}
+        @keyframes fadeDrop{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+        .search-history-header{display:flex;justify-content:space-between;padding:12px 18px 6px;font-size:0.68rem;font-weight:700;color:var(--text-muted);letter-spacing:1.5px;text-transform:uppercase}
+        .search-history-clear{cursor:pointer;color:var(--accent-dark)}
+        .search-history-item{display:flex;align-items:center;gap:12px;padding:10px 18px;font-size:0.85rem;color:var(--text-secondary);cursor:pointer;transition:background 150ms var(--ease)}
+        .search-history-item:hover{background:var(--accent-light);color:var(--accent-dark)}
+        .search-history-item svg{width:14px;height:14px;color:var(--text-muted);flex-shrink:0}
+        .search-meta{margin-top:14px;font-size:0.82rem;color:var(--text-secondary)}
+        .search-meta strong{color:var(--accent-dark);font-weight:600}
+        .search-meta a{color:var(--text-muted);text-decoration:underline;margin-left:12px;cursor:pointer}
+
+        .main{padding:0 28px 100px;max-width:1000px;margin:0 auto}
+
+        .section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;padding-bottom:14px;border-bottom:1px solid var(--border-light);position:relative}
+        .section-head::after{content:'';position:absolute;bottom:-1px;left:0;width:48px;height:3px;background:var(--accent);border-radius:2px}
+        .section-title{display:flex;align-items:center;gap:10px;font-size:1.05rem;font-weight:700;color:var(--text-primary);font-family:"Noto Serif SC",serif}
+        .section-title svg{width:18px;height:18px;color:var(--accent)}
+        .section-count{font-size:0.75rem;color:var(--text-muted);padding:4px 12px;border:1px solid var(--border);border-radius:20px;font-family:"JetBrains Mono",monospace}
+
+        /* ============================================
+           CAROUSEL — Enhanced
+        ============================================ */
+        .recommend-wrap{margin-bottom:44px;background:var(--bg-card);border-radius:var(--radius-xl);padding:28px 28px 32px;border:1px solid var(--border);box-shadow:var(--shadow-sm);position:relative;overflow:hidden}
+        .recommend-wrap::before{content:'';position:absolute;top:0;right:0;width:260px;height:260px;background:radial-gradient(circle,var(--accent-glow) 0%,transparent 70%);pointer-events:none;opacity:0.2}
+        .recommend-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;position:relative;z-index:1}
+        .recommend-title{display:flex;align-items:center;gap:10px;font-size:1rem;font-weight:700;color:var(--text-primary);font-family:"Noto Serif SC",serif}
+        .recommend-title svg{width:17px;height:17px;color:var(--accent)}
+        .recommend-badge{font-size:0.7rem;padding:4px 12px;border:1px solid var(--accent);color:var(--accent-dark);border-radius:20px;font-family:"Noto Serif SC",serif;background:var(--accent-ghost)}
+        .carousel-stage{position:relative;min-height:280px;z-index:1}
+        .carousel-page{position:absolute;top:0;left:0;width:100%;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:20px;opacity:0;transition:opacity 400ms var(--ease);pointer-events:none}
+        .carousel-page.active{opacity:1;pointer-events:auto;position:relative}
+
+        .carousel-dots{display:flex;justify-content:center;gap:6px;margin-top:20px;position:relative;z-index:1}
+        .carousel-dot{width:8px;height:8px;border-radius:50%;background:var(--border);cursor:pointer;transition:all 250ms var(--ease)}
+        .carousel-dot:hover{background:var(--accent)}
+        .carousel-dot.active{background:var(--accent-dark);width:24px;border-radius:4px}
+
+        /* ============================================
+           BOOK CARD — Grid
+        ============================================ */
+        .book-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:20px}
+        .book-card{background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;cursor:pointer;transition:all 300ms var(--ease);display:flex;flex-direction:column;animation:cardFade 0.5s var(--ease-out) both;position:relative}
+        .book-card:hover{transform:translateY(-5px);box-shadow:var(--shadow-lg);border-color:var(--accent)}
+        @keyframes cardFade{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+        .book-cover{position:relative;height:190px;overflow:hidden;background:var(--bg-surface)}
+        .book-cover img{width:100%;height:100%;object-fit:cover;transition:transform 600ms var(--ease)}
+        .book-card:hover .book-cover img{transform:scale(1.05)}
+        .book-cover-placeholder{width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--text-muted)}
+        .book-cover-placeholder svg{width:42px;height:42px;opacity:0.4}
+        .book-body{padding:14px 16px 16px;display:flex;flex-direction:column;flex:1}
+        .book-title{font-size:0.9rem;font-weight:600;color:var(--text-primary);font-family:"Noto Serif SC",serif;margin-bottom:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .book-meta{display:flex;align-items:center;gap:6px;margin-bottom:8px;flex-wrap:wrap}
+        .tag-category{display:inline-flex;padding:2px 10px;border:1px solid var(--border);color:var(--text-muted);border-radius:20px;font-size:0.68rem;font-weight:600}
+        .book-footer{margin-top:auto;font-size:0.73rem;color:var(--text-muted);display:flex;align-items:center;gap:5px}
+        .book-footer svg{width:12px;height:12px}
+        .book-reason{font-size:0.74rem;color:var(--accent-dark);font-weight:500;display:flex;align-items:center;gap:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:4px}
+        .book-reason svg{width:11px;height:11px;flex-shrink:0}
+        .book-match{position:absolute;top:10px;right:10px;display:flex;align-items:center;gap:3px;padding:4px 10px;background:rgba(255,255,255,0.92);backdrop-filter:blur(8px);border:1px solid var(--accent);border-radius:20px;font-size:0.66rem;font-weight:700;color:var(--accent-dark);font-family:"Noto Serif SC",serif}
+        [data-theme="dark"] .book-match{background:rgba(30,30,28,0.92)}
+
+        /* ============================================
+           LIST CARD — Vertical for Rankings
+        ============================================ */
+        .list-list{display:flex;flex-direction:column;gap:10px}
+        .list-card{display:flex;align-items:center;gap:18px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 20px;cursor:pointer;transition:all 250ms var(--ease);animation:cardFade 0.4s var(--ease-out) both;position:relative;overflow:hidden}
+        .list-card:hover{transform:translateX(4px);box-shadow:var(--shadow-md);border-color:var(--accent)}
+        .list-rank{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.78rem;font-weight:900;font-family:"JetBrains Mono",monospace;flex-shrink:0}
+        .list-rank.r1{background:#D4A843;color:#FFF}.list-rank.r2{background:#A0A8B0;color:#FFF}.list-rank.r3{background:#B08968;color:#FFF}
+        .list-rank.rn{background:var(--bg-surface);color:var(--text-muted);border:1px solid var(--border)}
+        .list-cover{width:64px;height:88px;border-radius:var(--radius-sm);overflow:hidden;background:var(--bg-surface);flex-shrink:0;display:flex;align-items:center;justify-content:center}
+        .list-cover img{width:100%;height:100%;object-fit:cover}
+        .list-cover svg{width:24px;height:24px;color:var(--text-muted);opacity:0.4}
+        .list-info{flex:1;min-width:0}
+        .list-book-title{font-size:0.92rem;font-weight:600;color:var(--text-primary);font-family:"Noto Serif SC",serif;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .list-book-meta{display:flex;align-items:center;gap:10px;font-size:0.78rem;color:var(--text-muted);flex-wrap:wrap}
+        .list-book-meta svg{width:12px;height:12px}
+        .list-book-desc{font-size:0.78rem;color:var(--text-muted);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .list-stats{display:flex;align-items:center;gap:16px;flex-shrink:0;margin-left:auto}
+        .list-score{text-align:center}
+        .list-score-num{font-size:1.3rem;font-weight:700;color:var(--accent-dark);font-family:"JetBrains Mono",monospace;line-height:1}
+        .list-score-label{font-size:0.65rem;color:var(--text-muted);margin-top:2px}
+        .list-rating-count{text-align:center}
+        .list-rating-count-num{font-size:0.85rem;font-weight:600;color:var(--text-secondary);font-family:"JetBrains Mono",monospace}
+        .list-rating-count-label{font-size:0.65rem;color:var(--text-muted);margin-top:2px}
+        .list-arrow{color:var(--text-muted);flex-shrink:0;display:flex}
+        .list-arrow svg{width:18px;height:18px}
+
+        /* ============================================
+           SKELETON / EMPTY
+        ============================================ */
+        .skeleton{background:linear-gradient(90deg,var(--bg-surface) 25%,var(--bg-elevated) 50%,var(--bg-surface) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:var(--radius-sm)}
+        @keyframes shimmer{to{background-position-x:-200%}}
+        .sk-grid-card{background:var(--bg-elevated);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}
+        .sk-cover{height:190px;border-radius:0}
+        .sk-title{height:15px;width:75%;margin:14px 16px 8px}
+        .sk-badge{height:18px;width:48px;margin:0 16px 10px}
+        .sk-text{height:11px;width:55%;margin:0 16px 16px}
+        .sk-list-card{height:120px;display:flex;align-items:center;gap:18px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 20px;margin-bottom:10px}
+        .sk-list-rank{width:32px;height:32px;border-radius:50%}
+        .sk-list-cover{width:64px;height:88px}
+        .sk-list-body{flex:1}
+        .sk-list-body .skeleton{margin-bottom:8px;height:14px}
+        .sk-list-body .skeleton:first-child{width:40%}
+        .sk-list-body .skeleton:nth-child(2){width:55%}
+        .sk-list-stats{width:80px;height:32px;margin-left:auto}
+
+        .empty-state{text-align:center;padding:64px 24px}
+        .empty-icon{width:90px;margin:0 auto 20px;opacity:0.18}
+        .empty-title{font-size:1rem;font-weight:700;color:var(--text-primary);font-family:"Noto Serif SC",serif;margin-bottom:6px}
+        .empty-desc{font-size:0.85rem;color:var(--text-secondary)}
+
+        /* ============================================
+           AUTH MODAL
+        ============================================ */
+        .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.3);backdrop-filter:blur(8px);display:flex;justify-content:center;align-items:center;z-index:1000;padding:24px}
+        .modal-box{background:var(--bg-elevated);border-radius:var(--radius-xl);width:100%;max-width:420px;position:relative;box-shadow:var(--shadow-xl);border:1px solid var(--border);animation:modalIn 0.35s var(--ease-out)}
+        @keyframes modalIn{from{opacity:0;transform:scale(0.95) translateY(12px)}to{opacity:1;transform:scale(1) translateY(0)}}
+        .modal-head{padding:36px 32px 0;text-align:center}
+        .modal-seal{display:inline-block;width:48px;height:48px;border:2px solid var(--accent);color:var(--accent-dark);border-radius:50%;font-size:1.1rem;font-weight:900;line-height:44px;text-align:center;margin-bottom:20px;font-family:"Noto Serif SC",serif}
+        .modal-title{font-size:1.4rem;font-weight:700;color:var(--text-primary);font-family:"Noto Serif SC",serif;letter-spacing:0.5px;margin-bottom:8px}
+        .modal-close{position:absolute;top:18px;right:18px;width:32px;height:32px;border-radius:50%;border:none;background:var(--bg-hover);color:var(--text-muted);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 200ms var(--ease)}
+        .modal-close:hover{background:var(--border);color:var(--text-primary)}
+        .modal-close svg{width:15px;height:15px}
+        .modal-body{padding:24px 32px 32px}
+        .form-group{margin-bottom:18px}
+        .form-label{display:block;font-size:0.78rem;font-weight:600;color:var(--text-secondary);margin-bottom:7px}
+        .form-input{width:100%;padding:12px 16px;font-size:0.9rem;border:1px solid var(--border);border-radius:var(--radius-md);background:var(--bg-surface);color:var(--text-primary);outline:none;transition:all 200ms var(--ease);font-family:inherit}
+        .form-input::placeholder{color:var(--text-muted)}
+        .form-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow);background:var(--bg-card)}
+        .form-error{font-size:0.75rem;color:#C44E3D;margin-top:6px;display:flex;align-items:center;gap:5px}
+        .form-error svg{width:13px;height:13px}
+        .btn-primary{width:100%;padding:13px;background:var(--accent);color:#FFF;border:none;border-radius:var(--radius-md);font-size:0.92rem;font-weight:700;cursor:pointer;transition:all 200ms var(--ease);font-family:inherit;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+        .btn-primary:hover{background:var(--accent-dark);transform:translateY(-1px)}
+        .btn-primary:disabled{opacity:0.55;cursor:not-allowed;transform:none}
+        .auth-switch{text-align:center;margin-top:20px;font-size:0.86rem;color:var(--text-secondary)}
+        .auth-switch a{color:var(--accent-dark);font-weight:600;cursor:pointer}
+        .auth-switch a:hover{text-decoration:underline}
+
+        /* ============================================
+           SLIDE PANEL
+        ============================================ */
+        .slide-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.25);backdrop-filter:blur(6px);z-index:1000}
+        .slide-panel{position:fixed;top:0;right:0;width:520px;max-width:94vw;height:100vh;background:var(--bg-elevated);border-left:1px solid var(--border);box-shadow:var(--shadow-xl);z-index:1001;display:flex;flex-direction:column;animation:slideIn 0.35s var(--ease-out)}
+        @keyframes slideIn{from{transform:translateX(100%)}to{transform:translateX(0)}}
+        .slide-head{padding:28px 28px 0;display:flex;align-items:flex-start;justify-content:space-between;flex-shrink:0}
+        .slide-book-title{font-size:1.3rem;font-weight:700;color:var(--text-primary);font-family:"Noto Serif SC",serif;letter-spacing:0.5px;margin-bottom:6px;padding-right:16px}
+        .slide-book-meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+        .slide-cover-wrap{padding:24px 28px 0;display:flex;gap:22px;flex-shrink:0}
+        .slide-cover{width:100px;height:140px;border-radius:var(--radius-md);overflow:hidden;background:var(--bg-surface);display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow-md);flex-shrink:0}
+        .slide-cover img{width:100%;height:100%;object-fit:cover}
+        .slide-cover svg{width:32px;height:32px;color:var(--text-muted)}
+        .slide-cover-info{padding:4px 0;flex:1;min-width:0}
+        .slide-desc{background:var(--bg-surface);border-radius:var(--radius-md);padding:16px;font-size:0.85rem;color:var(--text-secondary);line-height:1.75}
+        .slide-body{padding:0 28px 28px;overflow-y:auto;flex:1}
+        .slide-body::-webkit-scrollbar{width:3px}
+        .slide-actions{display:flex;align-items:center;justify-content:space-between;margin:18px 0 22px;flex-wrap:wrap;gap:12px}
+        .btn-shelf{display:flex;align-items:center;gap:8px;padding:10px 20px;background:var(--accent-light);color:var(--accent-dark);border:1px solid var(--accent);border-radius:var(--radius-md);font-size:0.83rem;font-weight:600;cursor:pointer;transition:all 200ms var(--ease);font-family:inherit}
+        .btn-shelf:hover{background:var(--accent);color:#FFF}.btn-shelf svg{width:16px;height:16px}
+        .btn-shelf-done{display:flex;align-items:center;gap:8px;padding:10px 20px;background:var(--bg-surface);color:var(--text-muted);border:1px solid var(--border);border-radius:var(--radius-md);font-size:0.83rem;cursor:default;font-family:inherit}
+        .btn-shelf-done svg{width:16px;height:16px}
+        .star-group{display:flex;align-items:center;gap:10px}
+        .stars{display:flex;gap:4px}
+        .star{font-size:26px;line-height:1;cursor:pointer;user-select:none;transition:transform 200ms var(--ease-spring);color:var(--border)}
+        .star.active{color:var(--accent)}.star:hover{transform:scale(1.3)}.star:active{transform:scale(0.85)}
+        .btn-rate{display:flex;align-items:center;gap:6px;padding:9px 18px;background:var(--accent);color:#FFF;border:none;border-radius:var(--radius-md);font-size:0.81rem;font-weight:600;cursor:pointer;transition:all 200ms var(--ease);font-family:inherit}
+        .btn-rate:hover{background:var(--accent-dark)}.btn-rate:disabled{opacity:0.35;cursor:not-allowed}.btn-rate svg{width:14px;height:14px}
+        .slide-reviews{border-top:1px solid var(--border-light);padding-top:22px}
+        .slide-reviews-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+        .slide-reviews-title{font-size:0.92rem;font-weight:600;color:var(--text-primary);display:flex;align-items:center;gap:10px;font-family:"Noto Serif SC",serif}
+        .slide-reviews-title svg{width:16px;height:16px;color:var(--accent)}
+        .slide-reviews-count{font-size:0.72rem;color:var(--text-muted);padding:2px 10px;border:1px solid var(--border);border-radius:20px;font-family:"JetBrains Mono",monospace}
+        .review-form{margin-bottom:20px}
+        .review-textarea{width:100%;padding:13px 16px;font-size:0.86rem;border:1px solid var(--border);border-radius:var(--radius-md);background:var(--bg-surface);color:var(--text-primary);outline:none;resize:none;transition:all 200ms var(--ease);line-height:1.7;font-family:inherit}
+        .review-textarea::placeholder{color:var(--text-muted)}
+        .review-textarea:focus{border-color:var(--accent);background:var(--bg-card);box-shadow:0 0 0 3px var(--accent-glow)}
+        .review-form-footer{display:flex;justify-content:flex-end;margin-top:10px}
+        .btn-review{display:flex;align-items:center;gap:6px;padding:9px 20px;border:none;border-radius:var(--radius-md);font-size:0.83rem;font-weight:600;cursor:pointer;transition:all 200ms var(--ease);font-family:inherit;background:var(--accent);color:#FFF}
+        .btn-review:hover{background:var(--accent-dark)}.btn-review:disabled{opacity:0.35;cursor:not-allowed}.btn-review svg{width:14px;height:14px}
+        .reviews-list{max-height:300px;overflow-y:auto;padding-right:6px}
+        .review-item{padding:16px 0;border-bottom:1px solid var(--border-light)}.review-item:last-child{border-bottom:none}
+        .review-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+        .reviewer{display:flex;align-items:center;gap:10px}
+        .reviewer-avatar{width:30px;height:30px;border-radius:50%;background:var(--accent-light);color:var(--accent-dark);display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;flex-shrink:0}
+        .reviewer-name{font-size:0.84rem;font-weight:600;color:var(--text-primary)}
+        .review-date{font-size:0.74rem;color:var(--text-muted)}
+        .review-content{font-size:0.86rem;color:var(--text-secondary);line-height:1.75;padding-left:40px}
+        .review-actions{display:flex;align-items:center;padding-left:40px;margin-top:8px}
+        .like-btn{display:flex;align-items:center;gap:5px;font-size:0.78rem;font-weight:500;cursor:pointer;transition:all 150ms var(--ease);background:none;border:none;padding:4px 10px;border-radius:var(--radius-sm);font-family:inherit;color:var(--text-muted)}
+        .like-btn:hover{color:var(--accent-dark);background:var(--accent-ghost)}
+        .like-btn.liked{color:var(--accent-dark);background:var(--accent-light)}.like-btn.liked svg{fill:var(--accent)}
+        .like-btn svg{width:14px;height:14px;stroke:currentColor;fill:none}
+        .review-empty{text-align:center;padding:32px 16px;color:var(--text-muted);font-size:0.86rem}
+        .review-empty svg{width:32px;height:32px;color:var(--border);margin-bottom:8px}
+        .auth-prompt{text-align:center;padding:40px;background:var(--bg-surface);border-radius:var(--radius-md);border:1px dashed var(--border);margin-top:18px}
+        .auth-prompt p{font-size:0.9rem;color:var(--text-secondary);margin-bottom:18px}
+        .auth-prompt .btn-primary{width:auto;display:inline-flex;gap:8px}
+
+        /* ============================================
+           TOAST
+        ============================================ */
+        .toast-container{position:fixed;top:80px;right:24px;z-index:1100;display:flex;flex-direction:column;gap:10px}
+        .toast{background:var(--bg-elevated);border-radius:var(--radius-md);box-shadow:var(--shadow-lg);padding:13px 16px;display:flex;align-items:center;gap:12px;font-size:0.86rem;color:var(--text-primary);min-width:260px;max-width:380px;border-left:3px solid;animation:toastIn 0.3s var(--ease-out);position:relative;overflow:hidden;border:1px solid var(--border)}
+        .toast.success{border-left-color:#5B8C5A}.toast.error{border-left-color:#C44E3D}.toast.warning{border-left-color:#C4944A}.toast.info{border-left-color:#5B7F9E}
+        .toast svg{width:18px;height:18px;flex-shrink:0}
+        .toast.success svg{color:#5B8C5A}.toast.error svg{color:#C44E3D}.toast.warning svg{color:#C4944A}.toast.info svg{color:#5B7F9E}
+        .toast-bar{position:absolute;bottom:0;left:0;height:2px;animation:toastBar 2.8s linear forwards}
+        .toast.success .toast-bar{background:#5B8C5A}.toast.error .toast-bar{background:#C44E3D}.toast.warning .toast-bar{background:#C4944A}.toast.info .toast-bar{background:#5B7F9E}
+        @keyframes toastIn{from{transform:translateX(110%);opacity:0}to{transform:translateX(0);opacity:1}}
+        @keyframes toastBar{from{width:100%}to{width:0%}}
+        .toast-close{margin-left:auto;cursor:pointer;opacity:0.35;transition:opacity 150ms;display:flex}
+        .toast-close:hover{opacity:1}.toast-close svg{width:14px;height:14px;color:var(--text-muted)}
+
+        /* ============================================
+           BACK TO TOP
+        ============================================ */
+        .back-to-top{position:fixed;bottom:32px;right:32px;width:42px;height:42px;border-radius:50%;background:var(--bg-elevated);border:1px solid var(--border);box-shadow:var(--shadow-md);color:var(--text-secondary);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 200ms var(--ease);opacity:0;visibility:hidden;transform:translateY(8px);z-index:99}
+        .back-to-top.visible{opacity:1;visibility:visible;transform:translateY(0)}
+        .back-to-top:hover{background:var(--accent);color:#FFF;border-color:var(--accent);box-shadow:var(--shadow-accent)}
+        .back-to-top svg{width:18px;height:18px}
+
+        @media(max-width:900px){
+            .sidebar{display:none}
+            .main{padding:0 16px 60px;max-width:100%}
+            .top-bar{padding:0 18px}
+            .hero{padding:52px 16px 28px}
+            .book-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+            .list-stats{gap:10px}
+            .list-score-num{font-size:1.1rem}
+            .carousel-page{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+            .slide-panel{width:100vw;max-width:100vw}
+            .slide-cover-wrap{flex-direction:column;align-items:center}
+            .slide-cover{width:80px;height:110px}
+            .back-to-top{bottom:20px;right:20px}
+        }
+        @media(max-width:480px){
+            .nav-link span.nav-text{display:none}
+            .hero-title{font-size:1.6rem}
+            .book-grid{grid-template-columns:repeat(2,1fr);gap:10px}
+            .book-cover{height:160px}
+            .list-cover{width:48px;height:66px}
+            .list-card{padding:12px 14px;gap:10px}
+            .list-book-title{font-size:0.84rem}
+            .list-stats{margin-left:8px}
+        }
+    </style>
+</head>
+<body>
+<div id="app">
+    <div class="toast-container">
+        <div v-for="t in toasts" :key="t.id" class="toast" :class="t.type">
+            <svg v-if="t.type==='success'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            <svg v-else-if="t.type==='error'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+            <svg v-else-if="t.type==='warning'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            <span>{{t.message}}</span><span class="toast-close" @click="dismissToast(t.id)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
+            <div class="toast-bar"></div>
+        </div>
+    </div>
+
+    <header class="top-bar">
+        <a href="/" class="brand"><span class="brand-mark">阅</span><span class="brand-name">知<em>阅</em></span></a>
+        <div class="top-right">
+            <button class="theme-toggle" @click="toggleTheme" :title="isDark?'亮色':'暗色'">
+                <svg v-if="!isDark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+            </button>
+            <div class="nav-links">
+                <a href="/bookshelf.html" v-if="currentUser" class="nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg><span class="nav-text">书架</span></a>
+                <a href="/dashboard.html" v-if="currentUser&&currentUser.role===1" class="nav-link" style="color:var(--accent-dark)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span class="nav-text">后台管理</span></a>
+            </div>
+            <div v-if="currentUser" class="nav-user">
+                <div class="nav-user-avatar">{{(currentUser.nickname||currentUser.username)[0].toUpperCase()}}</div>
+                <span class="nav-user-name">{{currentUser.nickname||currentUser.username}}</span>
+                <span class="nav-user-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span>
+                <div class="user-dropdown">
+                    <div class="dropdown-header"><div class="dropdown-avatar">{{(currentUser.nickname||currentUser.username)[0].toUpperCase()}}</div><div class="dropdown-info"><div class="dropdown-name">{{currentUser.nickname||currentUser.username}}</div><div class="dropdown-role">{{currentUser.role===1?'管理员':'普通用户'}}</div></div></div>
+                    <div class="dropdown-divider"></div>
+                    <a href="/profile.html" class="dropdown-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>个人中心</a>
+                    <div class="dropdown-item logout" @click="logout"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>退出登录</div>
+                </div>
+            </div>
+            <button v-else class="nav-link" style="background:var(--accent);color:#FFF;font-weight:600;border-radius:var(--radius-md);white-space:nowrap" @click="showAuthModal=true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;flex-shrink:0"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>登录</button>
+        </div>
+    </header>
+
+    <div class="layout">
+        <aside class="sidebar">
+            <div class="sidebar-label">导航</div>
+            <div class="sidebar-item" :class="{active:sidebarTab==='home'}" @click="selectSidebar('home')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                首页
+            </div>
+            <div class="sidebar-item" :class="{active:sidebarTab==='books'}" @click="toggleBookMenu">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                书库
+                <span class="expand-arrow" :class="{open:sidebarTab==='books'}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+            </div>
+            <div class="sidebar-sub" v-show="sidebarTab==='books'">
+                <div class="sidebar-sub-item" :class="{active:activeCategory===''}" @click="selectCategory('')">全部图书 <span class="sidebar-sub-count">{{totalBookCount}}</span></div>
+                <div v-for="cat in categoryList" :key="cat" class="sidebar-sub-item" :class="{active:activeCategory===cat}" @click="selectCategory(cat)">{{cat}} <span class="sidebar-sub-count">{{getCategoryCount(cat)}}</span></div>
+            </div>
+            <div class="sidebar-divider"></div>
+            <div class="sidebar-item" :class="{active:sidebarTab==='rating'}" @click="selectSidebar('rating')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                评分排行
+            </div>
+            <div class="sidebar-item" :class="{active:sidebarTab==='popularity'}" @click="selectSidebar('popularity')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/></svg>
+                热门排行
+            </div>
+        </aside>
+
+        <div class="main-content">
+            <section class="hero">
+                <h1 class="hero-title">每一本书，都<em>懂你</em></h1>
+                <div class="search-wrap">
+                    <div class="search-inner">
+                        <span class="search-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
+                        <input class="search-input" v-model="searchKeyword" @keyup.enter="searchBooks" @focus="showSearchHistory=true" @blur="hideSearchHistoryDelayed" placeholder="搜索书名、作者或关键词…">
+                        <button class="search-btn" @click="searchBooks">搜索</button>
+                    </div>
+                    <div v-if="showSearchHistory&&searchHistory.length>0" class="search-history">
+                        <div class="search-history-header"><span>最近搜索</span><span class="search-history-clear" @click="clearSearchHistory">清除</span></div>
+                        <div v-for="(kw,i) in searchHistory" :key="'h'+i" class="search-history-item" @mousedown.prevent="useSearchHistory(kw)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>{{kw}}</div>
+                    </div>
+                    <div v-if="isSearching" class="search-meta">含<strong>"{{searchKeyword}}"</strong>的结果 &middot; <a @click.prevent="clearSearch">清除</a></div>
+                </div>
+            </section>
+
+            <div class="main">
+                <!-- HOME TAB: Recommendations Carousel + High-Rated Books -->
+                <template v-if="sidebarTab==='home' && !isSearching">
+                    <!-- Recommendations Carousel -->
+                    <div class="recommend-wrap" @mouseenter="pauseCarousel" @mouseleave="resumeCarousel">
+                        <div class="recommend-head">
+                            <div v-if="currentUser" class="recommend-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>为您精选 <span class="recommend-badge">基于阅读口味</span></div>
+                            <div v-else class="recommend-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>热门推荐 <span class="recommend-badge">大家都在看</span></div>
+                        </div>
+                        <!-- Carousel Stage -->
+                        <div v-if="recommendBooks.length>0" class="carousel-stage">
+                            <div v-for="(page,pi) in carouselPages" :key="'pg'+pi" class="carousel-page" :class="{active:pi===carouselPage}">
+                                <div v-for="book in page" :key="'rec-'+book.id" class="book-card" @click="openSlidePanel(book)">
+                                    <div class="book-cover"><img v-if="book.coverUrl" :src="book.coverUrl" :alt="book.title" @error="onImgError" loading="lazy"><div v-else class="book-cover-placeholder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div><div class="book-match"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="11" height="11"><polyline points="20 6 9 17 4 12"/></svg>推荐</div></div>
+                                    <div class="book-body"><h5 class="book-title" :title="book.title">{{book.title}}</h5><div class="book-meta"><span class="tag-category">{{book.category}}</span></div><div v-if="book.reason" class="book-reason" :title="book.reason"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>{{book.reason}}</div><div class="book-footer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>{{formatDate(book.createTime)}}</div></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div v-else class="empty-state" style="padding:48px 24px">
+                            <div class="empty-icon"><svg viewBox="0 0 80 60" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="15" y="10" width="50" height="40" rx="3" stroke="currentColor" stroke-width="1.5" fill="none" opacity="0.3"/></svg></div>
+                            <h3 class="empty-title">暂无推荐图书</h3>
+                            <p class="empty-desc">去书库发现好书，多打几个评分，系统就能更懂你的口味了</p>
+                        </div>
+                        <div v-if="!currentUser" style="text-align:center;margin-top:20px">
+                            <p style="color:var(--text-secondary);margin-bottom:10px;font-size:0.85rem">登录后即可享受个性化推荐</p>
+                            <button class="btn-primary" style="width:auto;display:inline-flex;align-items:center;gap:8px;padding:10px 28px;white-space:nowrap" @click="showAuthModal=true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;flex-shrink:0"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>登录 / 注册</button>
+                        </div>
+                        <div class="carousel-dots" v-if="carouselPages.length>1">
+                            <span v-for="(p,pi) in carouselPages" :key="'dot'+pi" class="carousel-dot" :class="{active:pi===carouselPage}" @click="carouselPage=pi"></span>
+                        </div>
+                    </div>
+
+                    <!-- High-Rated Books -->
+                    <div>
+                        <div class="section-head"><div class="section-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>高分好书</div><span v-if="!isLoading" class="section-count">{{displayBooks.length}}</span></div>
+                        <div class="book-grid" v-if="isLoading">
+                            <div class="sk-grid-card" v-for="n in 8"><div class="skeleton sk-cover"></div><div class="skeleton sk-title"></div><div class="skeleton sk-badge"></div><div class="skeleton sk-text"></div></div>
+                        </div>
+                        <div v-if="!isLoading&&displayBooks.length===0" class="empty-state"><h3 class="empty-title">暂无图书</h3></div>
+                        <div class="book-grid" v-if="!isLoading">
+                            <div v-for="(book,idx) in displayBooks" :key="'b-'+book.id" class="book-card" :style="{animationDelay:(idx*40)+'ms'}" @click="openSlidePanel(book)">
+                                <div class="book-cover"><img v-if="book.coverUrl" :src="book.coverUrl" :alt="book.title" @error="onImgError" loading="lazy"><div v-else class="book-cover-placeholder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div></div>
+                                <div class="book-body"><h5 class="book-title" :title="book.title">{{book.title}}</h5><div class="book-meta"><span class="tag-category">{{book.category}}</span></div><div class="book-footer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>{{formatDate(book.createTime)}}</div></div>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+
+                <!-- BOOKS TAB: Grid -->
+                <template v-if="sidebarTab==='books' && !isSearching">
+                    <div>
+                        <div class="section-head"><div class="section-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>{{activeCategory?'书库 · '+activeCategory:'全部图书'}}</div><span v-if="!isLoading" class="section-count">{{displayBooks.length}}</span></div>
+                        <div class="book-grid" v-if="isLoading">
+                            <div class="sk-grid-card" v-for="n in 8"><div class="skeleton sk-cover"></div><div class="skeleton sk-title"></div><div class="skeleton sk-badge"></div><div class="skeleton sk-text"></div></div>
+                        </div>
+                        <div v-if="!isLoading&&displayBooks.length===0" class="empty-state"><h3 class="empty-title">该分类暂无图书</h3></div>
+                        <div class="book-grid" v-if="!isLoading">
+                            <div v-for="(book,idx) in displayBooks" :key="'b-'+book.id" class="book-card" :style="{animationDelay:(idx*40)+'ms'}" @click="openSlidePanel(book)">
+                                <div class="book-cover"><img v-if="book.coverUrl" :src="book.coverUrl" :alt="book.title" @error="onImgError" loading="lazy"><div v-else class="book-cover-placeholder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div></div>
+                                <div class="book-body"><h5 class="book-title" :title="book.title">{{book.title}}</h5><div class="book-meta"><span class="tag-category">{{book.category}}</span></div><div class="book-footer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>{{formatDate(book.createTime)}}</div></div>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+
+                <!-- RANKING TABS: Vertical List -->
+                <template v-if="sidebarTab==='rating'||sidebarTab==='popularity'">
+                    <div>
+                        <div class="section-head"><div class="section-title"><svg v-if="sidebarTab==='rating'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/></svg>{{sidebarTab==='rating'?'评分排行':'热门排行'}}</div><span v-if="!isLoading" class="section-count">{{displayBooks.length}} 本</span></div>
+                        <!-- Skeleton for list -->
+                        <div v-if="isLoading">
+                            <div class="sk-list-card" v-for="n in 5"><div class="skeleton sk-list-rank"></div><div class="skeleton sk-list-cover"></div><div class="sk-list-body"><div class="skeleton"></div><div class="skeleton"></div></div><div class="skeleton sk-list-stats"></div></div>
+                        </div>
+                        <div v-if="!isLoading&&displayBooks.length===0" class="empty-state"><h3 class="empty-title">暂无排行数据</h3></div>
+                        <div class="list-list" v-if="!isLoading">
+                            <div v-for="(book,idx) in displayBooks" :key="'r-'+book.id" class="list-card" :style="{animationDelay:(idx*35)+'ms'}" @click="openSlidePanel(book)">
+                                <div class="list-rank" :class="(book.rankNum||(idx+1))===1?'r1':(book.rankNum||(idx+1))===2?'r2':(book.rankNum||(idx+1))===3?'r3':'rn'">{{book.rankNum||(idx+1)}}</div>
+                                <div class="list-cover"><img v-if="book.coverUrl" :src="book.coverUrl" :alt="book.title" @error="onImgError" loading="lazy"><svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div>
+                                <div class="list-info">
+                                    <div class="list-book-title">{{book.title}}</div>
+                                    <div class="list-book-meta">
+                                        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> {{book.author||'未知'}}</span>
+                                        <span class="tag-category">{{book.category}}</span>
+                                    </div>
+                                    <div class="list-book-desc">{{book.description||'暂无简介'}}</div>
+                                </div>
+                                <div class="list-stats">
+                                    <div class="list-score"><div class="list-score-num">{{book.avgScore?book.avgScore.toFixed(1):'-'}}</div><div class="list-score-label">均分</div></div>
+                                    <div class="list-rating-count"><div class="list-rating-count-num">{{book.reviewCount||0}}</div><div class="list-rating-count-label">评论</div></div>
+                                </div>
+                                <div class="list-arrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+
+                <!-- Search results (overrides everything, except ranking tabs) -->
+                <template v-if="isSearching && sidebarTab !== 'rating' && sidebarTab !== 'popularity'">
+                    <div>
+                        <div class="section-head"><div class="section-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>搜索结果</div><span class="section-count">{{displayBooks.length}}</span></div>
+                        <div class="book-grid" v-if="displayBooks.length>0">
+                            <div v-for="(book,idx) in displayBooks" :key="'s-'+book.id" class="book-card" :style="{animationDelay:(idx*40)+'ms'}" @click="openSlidePanel(book)">
+                                <div class="book-cover"><img v-if="book.coverUrl" :src="book.coverUrl" :alt="book.title" @error="onImgError" loading="lazy"><div v-else class="book-cover-placeholder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div></div>
+                                <div class="book-body"><h5 class="book-title" :title="book.title">{{book.title}}</h5><div class="book-meta"><span class="tag-category">{{book.category}}</span></div><div class="book-footer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>{{formatDate(book.createTime)}}</div></div>
+                            </div>
+                        </div>
+                        <div v-else class="empty-state"><h3 class="empty-title">没有找到相关图书</h3><p class="empty-desc">换个关键词试试</p></div>
+                    </div>
+                </template>
+            </div>
+        </div>
+    </div>
+
+    <!-- Back to Top -->
+    <div class="back-to-top" :class="{visible:showBackTop}" @click="scrollToTop"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg></div>
+
+    <!-- Auth Modal -->
+    <div class="modal-overlay" v-if="showAuthModal" @click.self="showAuthModal=false">
+        <div class="modal-box">
+            <div class="modal-head"><div class="modal-seal">{{isRegister?'注':'登'}}</div><h2 class="modal-title">{{isRegister?'创建账户':'欢迎回来'}}</h2></div>
+            <button class="modal-close" @click="showAuthModal=false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+            <div class="modal-body">
+                <div class="form-group"><label class="form-label">用户名</label><input class="form-input" v-model="formData.username" placeholder="3-20位字母或数字" maxlength="20" @keyup.enter="submitForm"><div v-if="formErrors.username" class="form-error"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>{{formErrors.username}}</div></div>
+                <div class="form-group"><label class="form-label">密码</label><input type="password" class="form-input" v-model="formData.password" placeholder="6-20位" maxlength="20" @keyup.enter="submitForm"><div v-if="formErrors.password" class="form-error"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>{{formErrors.password}}</div></div>
+                <div class="form-group" v-if="isRegister"><label class="form-label">昵称（可选）</label><input class="form-input" v-model="formData.nickname" placeholder="最多20字" maxlength="20" @keyup.enter="submitForm"></div>
+                <button class="btn-primary" @click="submitForm" :disabled="isSubmitting"><span v-if="isSubmitting" class="spinner"></span>{{isSubmitting?'处理中…':(isRegister?'注册':'登录')}}</button>
+                <div class="auth-switch">{{isRegister?'已有账号？':'还没有账号？'}}<a @click.prevent="switchMode">{{isRegister?'去登录':'注册'}}</a></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide Panel -->
+    <div class="slide-overlay" v-if="showSlidePanel" @click="closeSlidePanel"></div>
+    <div class="slide-panel" v-if="showSlidePanel">
+        <div class="slide-head"><div style="min-width:0;flex:1"><h2 class="slide-book-title">{{slideBook.title}}</h2><div class="slide-book-meta"><span class="tag-category">{{slideBook.category}}</span><span style="font-size:0.84rem;color:var(--text-secondary)">作者：{{slideBook.author||'未知'}}</span></div></div><button class="modal-close" @click="closeSlidePanel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+        <div class="slide-cover-wrap"><div class="slide-cover"><img v-if="slideBook.coverUrl" :src="slideBook.coverUrl" :alt="slideBook.title" @error="onImgError"><svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></div><div class="slide-cover-info"><div class="slide-desc">{{slideBook.description||'暂无内容简介，敬请期待…'}}</div></div></div>
+        <div class="slide-body">
+            <div v-if="currentUser">
+                <div class="slide-actions">
+                    <div><button v-if="!myBookshelfBookIds.includes(slideBook.id)" class="btn-shelf" @click="addToBookshelf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><line x1="12" y1="9" x2="12" y2="15"/><line x1="9" y1="12" x2="15" y2="12"/></svg>加入书架</button><div v-else class="btn-shelf-done"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>已在书架</div></div>
+                    <div class="star-group"><div class="stars"><span v-for="n in 5" :key="n" class="star" :class="n<=slideUserScore?'active':''" @click="slideUserScore=n">&#9733;</span></div><button class="btn-rate" @click="submitSlideRating" :disabled="slideUserScore===0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>评分</button></div>
+                </div>
+                <div class="slide-reviews"><div class="slide-reviews-head"><div class="slide-reviews-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>读者书评</div><span class="slide-reviews-count">{{slideReviews.length}}</span></div>
+                <div class="review-form"><textarea class="review-textarea" v-model="slideReviewContent" rows="3" placeholder="写下你的阅读感受，和书友们分享…"></textarea><div class="review-form-footer"><button class="btn-review" @click="submitSlideReview" :disabled="!slideReviewContent.trim()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>发布</button></div></div>
+                <div class="reviews-list"><div v-if="slideReviews.length===0" class="review-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><div>还没有书评，来写第一条吧</div></div><div v-for="review in slideReviews" :key="review.id" class="review-item"><div class="review-head"><div class="reviewer"><div class="reviewer-avatar">{{(review.nickname||'U')[0].toUpperCase()}}</div><span class="reviewer-name">{{review.nickname}}</span></div><span class="review-date">{{formatDate(review.create_time)}}</span></div><div class="review-content">{{review.content}}</div><div class="review-actions"><button class="like-btn" :class="slideLikedReviewIds.includes(review.id)?'liked':''" @click="slideLikedReviewIds.includes(review.id)?unlikeSlideReview(review.id):likeSlideReview(review.id)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"/><path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"/></svg>{{review.like_count||0}}</button></div></div></div></div>
+            </div>
+            <div v-else class="auth-prompt"><p>登录后即可打分、写书评并管理书架</p><button class="btn-primary" style="width:auto;display:inline-flex;align-items:center;gap:8px;padding:10px 28px;white-space:nowrap" @click="closeSlidePanel();showAuthModal=true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;flex-shrink:0"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>登录 / 注册</button></div>
+        </div>
+    </div>
+</div>
+
+<script>
+new Vue({
+    el:'#app',
+    data:{
+        displayBooks:[], recommendBooks:[], currentUser:null,
+        isLoading:true, toasts:[], searchKeyword:'', isSearching:false,
+        categoriesWithCount:[], totalBookCount:0, sidebarTab:'home', activeCategory:'',
+        categoryList:['科幻小说','历史传记','悬疑推理','武侠仙侠','言情小说','都市生活','奇幻魔幻','军事战争','文学经典','哲学心理'],
+        searchHistory:[], showSearchHistory:false,
+        showAuthModal:false, isRegister:false,
+        formData:{username:'',password:'',nickname:''},
+        formErrors:{username:'',password:''}, isSubmitting:false,
+        showSlidePanel:false, slideBook:{},
+        slideUserScore:0, myBookshelfBookIds:[],
+        slideReviewContent:'', slideReviews:[], slideLikedReviewIds:[],
+        isDark:false,
+        carouselPage:0, itemsPerPage:3, carouselRunning:true, carouselTimer:null,
+        showBackTop:false,
+        allRankedBooks:[]
+    },
+    computed:{
+        carouselPages:function(){
+            var pages=[],books=this.recommendBooks||[],n=this.itemsPerPage;
+            for(var i=0;i<books.length;i+=n) pages.push(books.slice(i,i+n));
+            return pages;
+        }
+    },
+    mounted:function(){
+        this.initTheme();this.loadSearchHistory();this.fetchCategoriesWithCount();this.loadHighRatedBooks();
+        var u=sessionStorage.getItem("loginUser");
+        if(u){this.currentUser=JSON.parse(u);this.fetchRecommendBooks();this.fetchMyBookshelfIds()}
+        else{this.loadHotRecommendBooks()}
+        document.addEventListener('click',this.handleClickOutside);
+        document.addEventListener('keydown',this.handleKeydown);
+        window.addEventListener('scroll',this.handleScroll);
+        this.startCarousel();
+    },
+    beforeDestroy:function(){document.removeEventListener('click',this.handleClickOutside);document.removeEventListener('keydown',this.handleKeydown);window.removeEventListener('scroll',this.handleScroll);this.stopCarousel()},
+    methods:{
+        showToast:function(m,t){t=t||'success';var id=Date.now()+Math.random();this.toasts.push({id:id,message:m,type:t});setTimeout(function(){this.dismissToast(id)}.bind(this),2800)},
+        dismissToast:function(id){this.toasts=this.toasts.filter(function(t){return t.id!==id})},
+        initTheme:function(){var s=localStorage.getItem('theme');if(s==='dark'){this.isDark=true;document.documentElement.setAttribute('data-theme','dark')}else{this.isDark=false;document.documentElement.removeAttribute('data-theme')}},
+        toggleTheme:function(){this.isDark=!this.isDark;if(this.isDark){document.documentElement.setAttribute('data-theme','dark');localStorage.setItem('theme','dark')}else{document.documentElement.removeAttribute('data-theme');localStorage.setItem('theme','light')}},
+
+        /* Sidebar */
+        selectSidebar:function(tab){
+            this.sidebarTab=tab;this.activeCategory='';this.isSearching=false;this.searchKeyword='';this.isLoading=true;
+            if(tab==='home'){this.loadHighRatedBooks();if(!this.currentUser){this.loadHotRecommendBooks()}else{this.fetchRecommendBooks()}}
+            else if(tab==='books'){this.loadAllBooks()}
+            else if(tab==='rating'){this.loadRanking('rating')}
+            else if(tab==='popularity'){this.loadRanking('popularity')}
+        },
+        toggleBookMenu:function(){
+            if(this.sidebarTab==='books'){this.selectSidebar('home');return}
+            this.selectSidebar('books');
+        },
+        selectCategory:function(cat){
+            this.sidebarTab='books';this.activeCategory=cat;this.isSearching=false;this.searchKeyword='';this.isLoading=true;
+            if(cat){this.loadCategory(cat)}else{this.loadAllBooks()}
+        },
+        fetchCategoriesWithCount:function(){
+            var self=this;
+            fetch('/api/book/categories-with-count').then(function(r){return r.json()}).then(function(r){if(r.code===200){self.categoriesWithCount=r.data||[];var total=0;self.categoriesWithCount.forEach(function(c){total+=c.count});self.totalBookCount=total}}.bind(this)).catch(function(){});
+        },
+        getCategoryCount:function(cat){
+            var found=this.categoriesWithCount.find(function(c){return c.name===cat;});
+            return found?found.count:0;
+        },
+        loadHighRatedBooks:function(){var self=this;fetch('/api/book/ranking?sort=rating').then(function(r){return r.json()}).then(function(r){if(r.code===200){var books=r.data||[];self.displayBooks=books.slice(0,20)}}).catch(function(){}).finally(function(){self.isLoading=false})},
+        loadAllBooks:function(){var self=this;fetch('/api/book/list').then(function(r){return r.json()}).then(function(r){if(r.code===200)self.displayBooks=r.data}).catch(function(){}).finally(function(){self.isLoading=false})},
+        loadCategory:function(cat){var self=this;fetch('/api/book/list?category='+encodeURIComponent(cat)).then(function(r){return r.json()}).then(function(r){if(r.code===200)self.displayBooks=r.data}).catch(function(){}).finally(function(){self.isLoading=false})},
+        loadRanking:function(sort){var self=this;fetch('/api/book/ranking?sort='+sort).then(function(r){return r.json()}).then(function(r){if(r.code===200){self.allRankedBooks=r.data||[];self.displayBooks=self.allRankedBooks}}).catch(function(){}).finally(function(){self.isLoading=false})},
+
+        /* Carousel */
+        startCarousel:function(){if(this.carouselTimer)return;var self=this;this.carouselTimer=setInterval(function(){if(self.carouselRunning&&self.carouselPages.length>1){self.carouselPage=(self.carouselPage+1)%self.carouselPages.length}},4000)},
+        stopCarousel:function(){if(this.carouselTimer){clearInterval(this.carouselTimer);this.carouselTimer=null}},
+        pauseCarousel:function(){this.carouselRunning=false},
+        resumeCarousel:function(){this.carouselRunning=true},
+
+        /* Search */
+        loadSearchHistory:function(){try{var h=localStorage.getItem('searchHistory');this.searchHistory=h?JSON.parse(h):[]}catch(e){this.searchHistory=[]}},
+        saveSearchHistory:function(){try{localStorage.setItem('searchHistory',JSON.stringify(this.searchHistory))}catch(e){}},
+        addSearchKeyword:function(kw){kw=kw.trim();if(!kw)return;this.searchHistory=this.searchHistory.filter(function(k){return k!==kw});this.searchHistory.unshift(kw);if(this.searchHistory.length>5)this.searchHistory=this.searchHistory.slice(0,5);this.saveSearchHistory()},
+        clearSearchHistory:function(){this.searchHistory=[];this.saveSearchHistory()},
+        useSearchHistory:function(kw){this.searchKeyword=kw;this.searchBooks()},
+        hideSearchHistoryDelayed:function(){setTimeout(function(){this.showSearchHistory=false}.bind(this),200)},
+        handleClickOutside:function(e){if(!e.target.closest('.search-wrap'))this.showSearchHistory=false;if(!e.target.closest('.nav-user'))this.closeAllDropdowns()},
+        closeAllDropdowns:function(){},
+        handleKeydown:function(e){if(e.key==='Escape'){if(this.showSlidePanel){this.closeSlidePanel();return}if(this.showAuthModal){this.showAuthModal=false;return}}if(e.key==='Enter'&&this.showAuthModal&&!this.isSubmitting){this.submitForm()}},
+        searchBooks:function(){
+            var kw=this.searchKeyword.trim();
+            if(!kw){this.clearSearch();return}
+            this.isLoading=true;
+            this.isSearching=true;
+            this.addSearchKeyword(kw);
+            this.showSearchHistory=false;
+            var self=this;
+            if(this.sidebarTab==='rating'||this.sidebarTab==='popularity'){
+                var kwLower=kw.toLowerCase();
+                if(this.allRankedBooks.length===0){
+                    var sort=this.sidebarTab;
+                    fetch('/api/book/ranking?sort='+sort).then(function(r){return r.json()}).then(function(r){
+                        if(r.code===200){
+                            self.allRankedBooks=r.data||[];
+                            self.displayBooks=self.allRankedBooks.filter(function(book){
+                                return(book.title&&book.title.toLowerCase().indexOf(kwLower)!==-1)||
+                                       (book.author&&book.author.toLowerCase().indexOf(kwLower)!==-1)||
+                                       (book.description&&book.description.toLowerCase().indexOf(kwLower)!==-1);
+                            });
+                        }
+                    }).catch(function(){}).finally(function(){self.isLoading=false});
+                    return;
+                }
+                self.displayBooks=self.allRankedBooks.filter(function(book){
+                    return(book.title&&book.title.toLowerCase().indexOf(kwLower)!==-1)||
+                           (book.author&&book.author.toLowerCase().indexOf(kwLower)!==-1)||
+                           (book.description&&book.description.toLowerCase().indexOf(kwLower)!==-1);
+                });
+                self.isLoading=false;
+                return;
+            }
+            var url='';
+            if(this.sidebarTab==='books'&&this.activeCategory){
+                url='/api/book/search?keyword='+encodeURIComponent(kw)+'&category='+encodeURIComponent(this.activeCategory);
+            }else{
+                url='/api/book/search?keyword='+encodeURIComponent(kw);
+            }
+            fetch(url).then(function(r){return r.json()}).then(function(r){
+                if(r.code===200)self.displayBooks=r.data;
+            }).catch(function(){}).finally(function(){self.isLoading=false});
+        },
+        clearSearch:function(){
+            this.searchKeyword='';
+            this.isSearching=false;
+            if(this.sidebarTab==='home'){
+                this.loadHighRatedBooks();
+            }else if(this.sidebarTab==='books'){
+                if(this.activeCategory){
+                    this.loadCategory(this.activeCategory);
+                }else{
+                    this.loadAllBooks();
+                }
+            }else if(this.sidebarTab==='rating'||this.sidebarTab==='popularity'){
+                this.loadRanking(this.sidebarTab);
+            }
+        },
+
+        /* Back to Top */
+        handleScroll:function(){this.showBackTop=window.scrollY>400},
+        scrollToTop:function(){window.scrollTo({top:0,behavior:'smooth'})},
+
+        /* Auth */
+        submitForm:function(){this.formErrors={username:'',password:''};var v=true;if(!this.formData.username||this.formData.username.length<3){this.formErrors.username='用户名至少3位';v=false}if(!this.formData.password||this.formData.password.length<6){this.formErrors.password='密码至少6位';v=false}if(!v)return;this.isSubmitting=true;var u=this.isRegister?'/api/user/register':'/api/user/login';var self=this;fetch(u,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(this.formData),credentials:'include'}).then(function(r){return r.json()}).then(function(result){self.isSubmitting=false;if(result.code===200){if(self.isRegister){self.showToast("注册成功，请登录！");self.isRegister=false;self.formData.password=''}else{self.currentUser=result.data;self.showAuthModal=false;sessionStorage.setItem("loginUser",JSON.stringify(result.data));self.formData={username:'',password:'',nickname:''};self.fetchRecommendBooks();self.fetchMyBookshelfIds();self.showToast("登录成功，欢迎回来！")}}else self.showToast(result.msg,'error')}).catch(function(){self.isSubmitting=false;self.showToast('网络异常，请重试','error')})},
+        switchMode:function(){this.isRegister=!this.isRegister;this.formErrors={username:'',password:''}},
+        logout:function(){sessionStorage.removeItem("loginUser");window.location.href='/index.html'},
+
+        /* User data */
+        fetchMyBookshelfIds:function(){if(!this.currentUser)return;var self=this;fetch('/api/bookshelf/list?userId='+this.currentUser.id,{credentials:'include'}).then(function(r){return r.json()}).then(function(r){if(r.code===200)self.myBookshelfBookIds=r.data.map(function(i){return i.id})})},
+        fetchRecommendBooks:function(){var self=this;fetch('/api/recommend/get?userId='+this.currentUser.id,{credentials:'include'}).then(function(r){return r.json()}).then(function(r){if(r.code===200){self.recommendBooks=r.data||[];self.carouselPage=0;self.startCarousel()}})},
+        loadHotRecommendBooks:function(){var self=this;fetch('/api/book/ranking?sort=rating').then(function(r){return r.json()}).then(function(r){if(r.code===200){self.recommendBooks=(r.data||[]).slice(0,9);self.carouselPage=0;self.startCarousel()}}).catch(function(){})},
+
+        /* Slide Panel */
+        openSlidePanel:function(book){this.slideBook=book;this.slideUserScore=0;this.showSlidePanel=true;this.slideReviewContent='';this.slideReviews=[];this.slideLikedReviewIds=[];this.fetchSlideBookReviews(book.id);var self=this;if(this.currentUser){fetch('/api/rating/get?userId='+this.currentUser.id+'&bookId='+book.id,{credentials:'include'}).then(function(r){return r.json()}).then(function(r){if(r.code===200&&r.data>0)self.slideUserScore=r.data});fetch('/api/review/liked?userId='+this.currentUser.id,{credentials:'include'}).then(function(r){return r.json()}).then(function(r){if(r.code===200)self.slideLikedReviewIds=r.data||[]})}document.body.style.overflow='hidden'},
+        closeSlidePanel:function(){this.showSlidePanel=false;document.body.style.overflow=''},
+        fetchSlideBookReviews:function(bid){var self=this;fetch('/api/review/list?bookId='+bid).then(function(r){return r.json()}).then(function(r){if(r.code===200)self.slideReviews=r.data})},
+        likeSlideReview:function(rid){var self=this;fetch('/api/review/like',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({reviewId:rid,userId:this.currentUser.id}),credentials:'include'}).then(function(r){return r.json()}).then(function(r){if(r.code===200){self.slideLikedReviewIds.push(rid);var rv=self.slideReviews.find(function(r){return r.id===rid});if(rv)rv.like_count=(rv.like_count||0)+1}else self.showToast(r.msg,'error')})},
+        unlikeSlideReview:function(rid){var self=this;fetch('/api/review/unlike',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({reviewId:rid,userId:this.currentUser.id}),credentials:'include'}).then(function(r){return r.json()}).then(function(r){if(r.code===200){self.slideLikedReviewIds=self.slideLikedReviewIds.filter(function(id){return id!==rid});var rv=self.slideReviews.find(function(r){return r.id===rid});if(rv&&rv.like_count>0)rv.like_count--}else self.showToast(r.msg,'error')})},
+        submitSlideReview:function(){var self=this;fetch('/api/review/add',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({userId:this.currentUser.id,bookId:this.slideBook.id,content:this.slideReviewContent.trim()}),credentials:'include'}).then(function(r){return r.json()}).then(function(r){if(r.code===200){self.showToast("书评发布成功！");self.slideReviewContent='';self.fetchSlideBookReviews(self.slideBook.id)}else self.showToast(r.msg,'error')}).catch(function(){self.showToast('网络异常','error')})},
+        addToBookshelf:function(){var self=this;fetch('/api/bookshelf/add',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({userId:this.currentUser.id,bookId:this.slideBook.id,readStatus:0}),credentials:'include'}).then(function(r){return r.json()}).then(function(r){if(r.code===200){self.myBookshelfBookIds.push(self.slideBook.id);self.showToast("已成功加入书架！")}else self.showToast(r.msg||'加入书架失败','error')}).catch(function(){self.showToast('网络异常','error')})},
+        submitSlideRating:function(){var self=this;if(this.slideUserScore===0)return;fetch('/api/rating/add',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({userId:this.currentUser.id,bookId:this.slideBook.id,score:this.slideUserScore}),credentials:'include'}).then(function(r){return r.json()}).then(function(r){if(r.code===200){self.showToast("感谢您的评价！已自动加入书架");self.fetchRecommendBooks();fetch('/api/bookshelf/add',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({userId:self.currentUser.id,bookId:self.slideBook.id,readStatus:2}),credentials:'include'}).then(function(r2){return r2.json()}).then(function(r2){if(r2.code===200&&self.myBookshelfBookIds.indexOf(self.slideBook.id)===-1){self.myBookshelfBookIds.push(self.slideBook.id)}})}else self.showToast("打分失败："+r.msg,'error')}).catch(function(){self.showToast('网络异常','error')})},
+        onImgError:function(e){e.target.style.display='none'},
+        formatDate:function(d){if(!d)return'';var dt=new Date(d);return dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0')}
+    }
+})
+</script>
+</body>
+</html>
