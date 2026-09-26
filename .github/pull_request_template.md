@@ -10,7 +10,8 @@
 ## 验证结果
 
 - [ ] 后端 `mvn verify`
-- [ ] 前端 lint、类型检查、测试与构建
+- [ ] 前端 `npm run typecheck`、`npm run test`、`npm run build`
+- [ ] 仓库文件检查 `node scripts/check-repository.mjs`
 - [ ] 手工验证核心流程
 - [ ] 已附必要截图或 CI 链接
 
@@ -37,6 +38,7 @@
 ## Code Review
 
 - 评审人：
+- 真实 PR / CI 运行链接：
+- 人工评审链接（AI 预审不等于人工批准）：
 - 主要意见：
 - 修改结果：
-
