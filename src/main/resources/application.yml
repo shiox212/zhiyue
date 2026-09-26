@@ -17,6 +17,11 @@ mybatis:
     map-underscore-to-camel-case: true
 
 app:
+  security:
+    jwt-secret-base64: ${JWT_SECRET_BASE64:}
+    secure-cookies: ${COOKIE_SECURE:true}
+    access-seconds: ${JWT_ACCESS_SECONDS:900}
+    refresh-seconds: ${JWT_REFRESH_SECONDS:604800}
   cors:
     allowed-origins:
       - ${CORS_ALLOWED_ORIGIN:http://localhost:5173}
