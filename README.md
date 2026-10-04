@@ -1,6 +1,6 @@
 # 知阅课程实验项目
 
-知阅提供图书浏览、用户登录、书架和阅读互动。后端 Java 17 / Spring Boot 3.3.5 / MyBatis，前端 Vue 3 / TypeScript / Vite，数据库 MySQL 8。实验四改用 JWT、HttpOnly Cookie、RBAC 和 CSRF 校验；LLM/RAG 尚未接入。
+知阅提供图书浏览、用户登录、书架和阅读互动。后端 Java 17 / Spring Boot 3.3.5 / MyBatis，前端 Vue 3 / TypeScript / Vite，数据库 MySQL 8。实验四改用 JWT、HttpOnly Cookie、RBAC 和 CSRF 校验；实验五增加基于项目资料的 DeepSeek 学习助手，使用本地 TF-IDF 向量检索并展示引用原文。
 
 ## 发布副本
 
@@ -16,10 +16,14 @@ main/develop 为实验二基线，feature/experiment-3-git-ci 引入实验三 CI
 
 后端端口可在 .env 中设置 SERVER_PORT；前端通过 frontend/.env.local 的 VITE_BACKEND_URL 指向对应后端。浏览器使用 http://localhost:5173，与 CORS 白名单一致。本地 HTTP 设 COOKIE_SECURE=false；HTTPS 环境使用 true。当前入口是 Vue 前端，历史静态 HTML 和旧 Session 拦截器不参与当前认证流程。
 
+学习助手还需在本机 .env 配置 DEEPSEEK_API_KEY，可选 DEEPSEEK_MODEL=deepseek-flash，然后重启后端。通过 OpenAI Java SDK 兼容接口访问 DeepSeek 官方地址；不需要 OpenAI 账户。登录后打开 `/assistant`。只配置 Key 不代表连接验证通过，实际调用仍可能失败。实现、资料范围与限制见 [实验五说明](docs/experiment-5-rag.md)。
+
 ## 验证与实验状态
 
 后端在根目录执行 mvn verify。前端执行 npm run typecheck、npm run test、npm run build。前端未配置 ESLint。实验四本地测试覆盖 JWT、CSRF、RBAC、跨用户访问、刷新重放、退出撤销和 AI 输入检查。实际结果以各次验证记录为准，不能推断本分支已通过云端 CI。
 
 密码使用 BCrypt，已移除在线明文兼容，旧数据需显式离线迁移。个人数据接口由服务端核对身份。AI 输入检查只是模型接入前的有限防护，仓库不代表生产安全验收通过。
 
-用户已要求暂缓 GitHub 上传；实验四仅在本地分支开展。真实 PR、云端 CI、人工评审及实验截图以实际证据为准。每个实验完成后等待用户审阅，不自动进入下一实验。
+实验五于 2026-10-04 完成本地验证：后端 81 项测试、前端 11 项测试、类型检查与生产构建通过，并完成真实 MySQL / DeepSeek 调用和浏览器验证。测试通过不等于模型每次都答对；真实验证中也出现被引用校验拦截的输出。
+
+用户已要求暂缓 GitHub 上传；实验四、五仅在本地分支开展。真实 PR、云端 CI、人工评审及实验截图以实际证据为准。每个实验完成后等待用户审阅，不自动进入下一实验。

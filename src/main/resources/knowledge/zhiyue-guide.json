@@ -1,0 +1,32 @@
+[
+  {
+    "id": "overview",
+    "title": "知阅项目与分层结构",
+    "content": "知阅是课程个人项目中的阅读平台，提供图书浏览、书架、评分、书评和个性化推荐。后端使用 Java 17、Spring Boot 3.3.5、MyBatis 和 MySQL 8；前端使用 Vue 3、TypeScript、Axios 与 Vite。当前学习助手只能回答这份知阅项目资料所覆盖的问题，不能查询用户的真实账号数据。\n\nController 接收 HTTP 请求并校验参数，Service 组织业务逻辑，Mapper 使用 MyBatis 操作数据库，Entity 表示业务数据。前端通过 Axios 调用 /api 下的 JSON 接口。后端 Result 包含 code、msg 和 data，前端也必须检查业务状态，不能只看 HTTP 状态码。"
+  },
+  {
+    "id": "running",
+    "title": "IDEA 启动与本地端口",
+    "content": "在 IDEA 中打开包含 pom.xml 的项目根目录，选择 JDK 17，等待 Maven 导入依赖。运行 EbookRecommendSystemApplication。运行配置的工作目录必须是项目根目录，以便读取本地 .env。数据库连接设置为 DB_URL、DB_USERNAME、DB_PASSWORD，认证签名密钥设置为 JWT_SECRET_BASE64。这里只列配置名称，不包含任何真实配置值。\n\n前端终端进入 frontend，首次执行 npm ci，再执行 npm run dev。浏览器默认打开 http://localhost:5173。后端默认端口是 8081；若 Windows 保留该端口，可在 .env 修改 SERVER_PORT，并在 frontend/.env.local 设置 VITE_BACKEND_URL 指向实际后端。本次课程演示使用后端 18081。浏览器来源必须与 CORS_ALLOWED_ORIGIN 一致，默认是 http://localhost:5173，不能随意混用 localhost 和 127.0.0.1。"
+  },
+  {
+    "id": "authentication",
+    "title": "登录、JWT、密码与退出",
+    "content": "知阅实验四使用 JWT 认证，登录态不依赖 HttpSession，也没有使用 Redis 保存登录态。POST /api/session 校验账号和 BCrypt 密码，成功后写入 HttpOnly、SameSite=Strict 的认证 Cookie。访问令牌 ZY_ACCESS 默认有效期 900 秒，刷新凭据 ZY_REFRESH 默认有效期 7 天。前端不把令牌放进 localStorage 或 sessionStorage，登录 JSON 不返回密码或凭据。\n\n后端验证 JWT 签名、过期时间、issuer、audience，再检查数据库账号状态和 token_version。刷新凭据在 MySQL 中只保存 SHA-256 摘要，每次刷新消费旧值并发放新值。DELETE /api/session 会退出全部设备；修改密码、封禁或解封也会撤销旧令牌。Cookie 会自动携带，因此登录、注册、刷新、退出及其他修改请求都需要 CSRF 请求头。\n\n新账号密码使用 BCrypt，旧明文密码不能在线登录。遗留密码只能先备份、停止其他实例，再以离线维护模式转换；已有 BCrypt 保持不变。开发环境本地 HTTP 可以设置 COOKIE_SECURE=false，HTTPS 部署应设置 true。HttpOnly 与 CSRF 不能代替输入验证和 XSS 防护。"
+  },
+  {
+    "id": "authorization",
+    "title": "RBAC 与个人数据权限",
+    "content": "知阅使用 USER 和 ADMIN 两种角色。角色和权限的关联保存在 security_role、security_permission、security_role_permission、security_user_role 表中。注册接口只能授予 USER，即使客户端提交 role=1 也不能成为管理员。管理接口 /api/admin/** 要求 ADMIN，方法上的 @PreAuthorize 还会检查具体权限。\n\n权限包括 book:manage、user:manage、review:moderate、stats:read。图书浏览和公开书评允许匿名查询。书架、评分、书评互动、个人资料、修改密码和推荐等个人接口要求登录，并由服务端判断 userId 是否属于当前用户。前端隐藏按钮不构成安全授权；未认证一般返回 401，已认证但权限不足或跨用户操作一般返回 403。当前没有新增 Vue 管理后台，管理功能通过受保护 API 验证。"
+  },
+  {
+    "id": "reading",
+    "title": "图书、书架与阅读互动",
+    "content": "发现页面支持按图书名称、作者和分类查找图书。进入图书详情后可以查看简介和公开书评。登录后可以将图书加入本人书架，阅读状态分为想读、在读和已读；同一用户不能重复保存同一本书的书架记录。\n\n评分保存在 rating 表，同一用户对同一本书只有一条记录。书评保存在 review 表，点赞保存在 review_like 表。推荐服务根据图书评分的共现关系计算相似度，为已有阅读偏好的用户生成推荐；缺少历史评分时使用热门高分图书作为冷启动推荐。这个推荐算法与实验五的大模型问答是两个独立功能。"
+  },
+  {
+    "id": "assistant",
+    "title": "学习助手、RAG 与回答边界",
+    "content": "实验五学习助手使用 DeepSeek 的 deepseek-flash 模型，通过 OpenAI 兼容接口调用。密钥只保存在后端本地配置 DEEPSEEK_API_KEY，不进入前端或 Git。每次只发送当前问题和检索到的项目说明片段，不发送用户表、数据库密码或聊天历史。助手不会执行命令、修改账号或访问任意网址。\n\nRAG 流程是项目资料按段落切块、过长段落按 480 个 Unicode 字符切分并重叠 60 字符、构造本地 TF-IDF 稀疏向量、用余弦相似度检索最多 3 段资料、将资料和当前问题作为不可信数据提供给模型。TF-IDF 是词项统计向量，不是神经网络语义嵌入，对近义词和复杂语义的识别有限。没有相关资料时直接说明依据不足，不调用模型。\n\n模型必须返回约定的 JSON，并为回答提供资料编号及原文引句。后端检查编号是否来自本次检索，以及引句是否真的存在于相应原文，前端显示资料标题和原文供读者复核。引用存在不保证结论一定正确。没有证据、引用无效或模型输出格式异常时应保守拒答。读者应以原始资料为准，必要时请教师或项目维护者复核。"
+  }
+]

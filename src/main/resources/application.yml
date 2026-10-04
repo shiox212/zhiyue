@@ -17,6 +17,9 @@ mybatis:
     map-underscore-to-camel-case: true
 
 app:
+  ai:
+    api-key: ${DEEPSEEK_API_KEY:}
+    model: ${DEEPSEEK_MODEL:deepseek-flash}
   security:
     jwt-secret-base64: ${JWT_SECRET_BASE64:}
     secure-cookies: ${COOKIE_SECURE:true}

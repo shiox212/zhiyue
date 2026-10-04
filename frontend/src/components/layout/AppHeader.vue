@@ -52,6 +52,7 @@ const logout = async () => {
           <RouterLink to="/books">发现</RouterLink>
           <RouterLink v-if="isAuthenticated" to="/recommendations">推荐</RouterLink>
           <RouterLink v-if="isAuthenticated" to="/shelf">书架</RouterLink>
+          <RouterLink v-if="isAuthenticated" to="/assistant">学习助手</RouterLink>
         </nav>
 
         <div class="account-actions">
