@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/assistant")
 public class LearningAssistantController {
-    public record Question(@NotBlank @Size(max=1000) String question) {}
+    public record Question(@NotBlank @Size(max=1000) String question, LearningAssistant.Mode mode) {}
     public record Status(boolean configured, String provider, String model, int documents, int chunks) {}
     private final LearningAssistant assistant;
     private final LanguageModel model;
@@ -28,6 +28,6 @@ public class LearningAssistantController {
     }
     @PostMapping("/ask") public Result<LearningAssistant.Answer> ask(@RequestBody @Valid Question input, HttpServletResponse response) {
         response.setHeader("Cache-Control", "no-store");
-        return Result.success(assistant.ask(Identity.currentId(), input.question()), "学习助手已处理");
+        return Result.success(assistant.ask(Identity.currentId(), input.question(), input.mode()), "图书知识助手已处理");
     }
 }

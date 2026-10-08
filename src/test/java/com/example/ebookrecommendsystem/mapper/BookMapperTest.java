@@ -129,6 +129,23 @@ class BookMapperTest {
         assertEquals(4.0, book1.getAvgScore(), 0.01); // (5+4+3)/3
     }
 
+    @Test void assistantProjectsOnlyMatchingPublicMetadataAndTreatsWildcardsLiterally() {
+        var books = bookMapper.findAssistantCandidates(List.of("刘慈欣"), "刘慈欣");
+        assertEquals(1, books.size()); assertEquals("三体", books.get(0).getTitle());
+        assertNull(books.get(0).getCreateTime()); assertNull(books.get(0).getCoverUrl());
+        assertTrue(bookMapper.findAssistantCandidates(List.of("%", "_", "' OR 1=1 --"), "' OR 1=1 --").isEmpty());
+    }
+    @Test void assistantKeepsExactHighIdTitleAndAuthorAheadOfMoreThanTwentyGenericCandidates() {
+        for (int id = 10; id < 35; id++) {
+            jdbc.update("INSERT INTO book(id, title, author, description) VALUES (?, ?, ?, ?)",
+                    id, "其他图书" + id, "其他作者" + id, "图书作者简介");
+        }
+        jdbc.update("INSERT INTO book(id, title, author, description) VALUES (99, '银河帝国选集', '阿西莫夫', '图书作者简介')");
+        var byTitle = bookMapper.findAssistantCandidates(List.of("作者", "简介", "银河"), "银河帝国选集的作者和简介");
+        assertEquals(20, byTitle.size()); assertEquals(99, byTitle.get(0).getId());
+        var byAuthor = bookMapper.findAssistantCandidates(List.of("作者", "简介", "阿西"), "阿西莫夫的作品简介");
+        assertEquals(20, byAuthor.size()); assertTrue(byAuthor.subList(0, 2).stream().anyMatch(book -> book.getId() == 99));
+    }
     @Test
     @DisplayName("热门排行：按评分人数降序")
     void shouldReturnBooksOrderedByRatingCount() {

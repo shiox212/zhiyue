@@ -9,6 +9,7 @@ export interface AssistantStatus {
   chunks: number
 }
 export interface Citation {
+  bookId?: number | null
   sourceId: string
   title: string
   quote: string
@@ -16,7 +17,7 @@ export interface Citation {
   score: number
 }
 export interface AssistantAnswer {
-  status: 'ANSWERED' | 'NO_EVIDENCE' | 'INSUFFICIENT' | 'UNVERIFIED'
+  status: 'ANSWERED' | 'GENERAL_KNOWLEDGE' | 'NO_EVIDENCE' | 'INSUFFICIENT' | 'UNVERIFIED'
   answer: string
   citations: Citation[]
   modelCalled: boolean
@@ -30,7 +31,7 @@ export const assistantApi = {
   async status() {
     return unwrap((await http.get<ApiResponse<AssistantStatus>>('/assistant/status')).data)
   },
-  async ask(question: string) {
-    return unwrap((await http.post<ApiResponse<AssistantAnswer>>('/assistant/ask', { question }, { timeout: 55000 })).data)
+  async ask(question: string, mode: 'LIBRARY' | 'GENERAL' = 'LIBRARY') {
+    return unwrap((await http.post<ApiResponse<AssistantAnswer>>('/assistant/ask', { question, mode }, { timeout: 55000 })).data)
   },
 }

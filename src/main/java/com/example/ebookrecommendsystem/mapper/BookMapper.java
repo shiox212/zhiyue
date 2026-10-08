@@ -10,6 +10,17 @@ import java.util.List;
 @Mapper
 public interface BookMapper {
 
+    // Assistant-only public metadata projection; bound keywords and a fixed candidate ceiling.
+    @Select("<script>SELECT id, title, author, category, description FROM book WHERE " +
+            "<foreach collection='keywords' item='keyword' open='(' separator=' OR ' close=')'>" +
+            "(LOCATE(#{keyword}, title) > 0 OR LOCATE(#{keyword}, author) > 0 " +
+            "OR LOCATE(#{keyword}, category) > 0 OR LOCATE(#{keyword}, description) > 0)" +
+            "</foreach> ORDER BY CASE " +
+            "WHEN title IS NOT NULL AND LENGTH(TRIM(title)) > 0 AND LOCATE(LOWER(title), LOWER(#{question})) > 0 THEN 0 " +
+            "WHEN author IS NOT NULL AND LENGTH(TRIM(author)) > 0 AND LOCATE(LOWER(author), LOWER(#{question})) > 0 THEN 1 " +
+            "ELSE 2 END, id LIMIT 20</script>")
+    List<Book> findAssistantCandidates(@Param("keywords") List<String> keywords, @Param("question") String question);
+
     @Select("SELECT * FROM book ORDER BY create_time DESC")
     List<Book> findAll();
 
