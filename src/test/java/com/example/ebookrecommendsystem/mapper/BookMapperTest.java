@@ -161,4 +161,33 @@ class BookMapperTest {
         // 图书3（0人评分）排第三
         assertEquals(3, books.get(2).getId());
     }
+
+    @Test void assistantFindsExactPunctuatedTitleEvenWithoutChineseBigrams() {
+        jdbc.update("INSERT INTO book(id, title, author, description) VALUES (110, '简·爱', '夏洛蒂·勃朗特', '成长与独立')");
+        var books = bookMapper.findAssistantCandidates(List.of("作者", "简介"), "《简·爱》的作者和简介是什么？");
+        assertEquals(1, books.size()); assertEquals(110, books.get(0).getId());
+        assertNull(books.get(0).getCoverUrl());
+    }
+
+    @Test void assistantKeepsExplicitAuthorAheadOfOtherWorksSharingTheTitle() {
+        for (int id=10;id<35;id++) jdbc.update("INSERT INTO book(id,title,author) VALUES (?, '变形记', ?)",id,"其他作者"+id);
+        jdbc.update("INSERT INTO book(id,title,author) VALUES (132, '变形记', '弗兰茨·卡夫卡')");
+        var books=bookMapper.findAssistantCandidates(List.of("变形"),"弗兰茨·卡夫卡的《变形记》简介");
+        assertEquals(20,books.size()); assertEquals(132,books.get(0).getId());
+    }
+
+    @Test void assistantDoesNotMatchMissingMetadataOrTreatBlankValuesAsExactMatches() {
+        jdbc.update("INSERT INTO book(id,title,author) VALUES (110, '无关作品', '')");
+        jdbc.update("INSERT INTO book(id,title,author) VALUES (111, ' ', ' ')");
+        jdbc.update("INSERT INTO book(id,title,author) VALUES (112, '', NULL)");
+        assertTrue(bookMapper.findAssistantCandidates(List.of("qzvxjkp729"), "qzvxjkp729").isEmpty());
+        assertTrue(bookMapper.findAssistantCandidates(List.of("无关"), "无关作品简介").stream()
+                .noneMatch(book -> book.getId() == 111 || book.getId() == 112));
+    }
+
+    @Test void assistantCanFindCompletePunctuatedTitleWithNoTokenizedKeywords() {
+        jdbc.update("INSERT INTO book(id,title,author) VALUES (110, '简·爱', '夏洛蒂·勃朗特')");
+        var books = bookMapper.findAssistantCandidates(List.of(), "简·爱");
+        assertEquals(1, books.size()); assertEquals(110, books.get(0).getId());
+    }
 }

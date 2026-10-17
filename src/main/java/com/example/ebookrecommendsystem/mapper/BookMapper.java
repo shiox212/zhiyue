@@ -10,17 +10,21 @@ import java.util.List;
 @Mapper
 public interface BookMapper {
 
+    String ASSISTANT_TITLE_MATCH = "(LENGTH(TRIM(title)) > 0 AND LOCATE(LOWER(TRIM(title)), LOWER(#{question})) > 0)";
+    String ASSISTANT_AUTHOR_MATCH = "(LENGTH(TRIM(author)) > 0 AND LOCATE(LOWER(TRIM(author)), LOWER(#{question})) > 0)";
+
     // Assistant-only public metadata projection; bound keywords and a fixed candidate ceiling.
-    @Select("<script>SELECT id, title, author, category, description FROM book WHERE " +
-            "<foreach collection='keywords' item='keyword' open='(' separator=' OR ' close=')'>" +
-            "(LOCATE(#{keyword}, title) > 0 OR LOCATE(#{keyword}, author) > 0 " +
+    @Select("<script>SELECT id, title, author, category, description FROM book WHERE (1=0 " +
+            "<foreach collection='keywords' item='keyword'>" +
+            "OR (LOCATE(#{keyword}, title) > 0 OR LOCATE(#{keyword}, author) > 0 " +
             "OR LOCATE(#{keyword}, category) > 0 OR LOCATE(#{keyword}, description) > 0)" +
-            "</foreach> ORDER BY CASE " +
-            "WHEN title IS NOT NULL AND LENGTH(TRIM(title)) > 0 AND LOCATE(LOWER(title), LOWER(#{question})) > 0 THEN 0 " +
-            "WHEN author IS NOT NULL AND LENGTH(TRIM(author)) > 0 AND LOCATE(LOWER(author), LOWER(#{question})) > 0 THEN 1 " +
-            "ELSE 2 END, CASE " +
-            "WHEN title IS NOT NULL AND LENGTH(TRIM(title)) > 0 AND LOCATE(LOWER(title), LOWER(#{question})) > 0 THEN LENGTH(TRIM(title)) " +
-            "WHEN author IS NOT NULL AND LENGTH(TRIM(author)) > 0 AND LOCATE(LOWER(author), LOWER(#{question})) > 0 THEN LENGTH(TRIM(author)) " +
+            "</foreach>) OR " + ASSISTANT_TITLE_MATCH + " OR " + ASSISTANT_AUTHOR_MATCH + " ORDER BY CASE " +
+            "WHEN " + ASSISTANT_TITLE_MATCH + " AND " + ASSISTANT_AUTHOR_MATCH + " THEN 0 " +
+            "WHEN " + ASSISTANT_TITLE_MATCH + " THEN 1 " +
+            "WHEN " + ASSISTANT_AUTHOR_MATCH + " THEN 2 " +
+            "ELSE 3 END, CASE " +
+            "WHEN " + ASSISTANT_AUTHOR_MATCH + " THEN LENGTH(TRIM(author)) " +
+            "WHEN " + ASSISTANT_TITLE_MATCH + " THEN LENGTH(TRIM(title)) " +
             "ELSE 0 END DESC, id LIMIT 20</script>")
     List<Book> findAssistantCandidates(@Param("keywords") List<String> keywords, @Param("question") String question);
 

@@ -57,4 +57,46 @@ class BookKnowledgeTest {
         var book = new Book(); book.setId(id); book.setTitle(title); book.setAuthor(author);
         book.setCategory("小说"); book.setDescription(description); return book;
     }
+
+    @Test void exactShortTitleSurvivesLowSimilarityOfLongMetadata() {
+        var mapper = mock(BookMapper.class);
+        var target = book(71, "诗经", "佚名", "");
+        target.setDescription(java.util.stream.IntStream.range(0, 400)
+                .mapToObj(i -> "词" + i).collect(java.util.stream.Collectors.joining(" ")));
+        when(mapper.findAssistantCandidates(anyList(), anyString())).thenReturn(List.of(target));
+        assertEquals(71, new BookKnowledge(mapper).retrieve("《诗经》的作者和简介是什么？").get(0).chunk().bookId());
+    }
+
+    @Test void exactPunctuatedAuthorSurvivesLowSimilarity() {
+        var mapper = mock(BookMapper.class);
+        var target = book(98, "哈姆雷特", "威廉·莎士比亚", "独白、装疯与戏中戏呈现复仇和犹疑。");
+        when(mapper.findAssistantCandidates(anyList(), anyString())).thenReturn(List.of(target));
+        assertEquals(98, new BookKnowledge(mapper).retrieve("威廉·莎士比亚的作品有哪些？").get(0).chunk().bookId());
+    }
+
+    @Test void sameTitleKeepsBothWorksAndExplicitAuthorRanksFirst() {
+        var mapper = mock(BookMapper.class);
+        when(mapper.findAssistantCandidates(anyList(), anyString())).thenReturn(List.of(
+                book(93, "变形记", "奥维德", "古罗马神话叙事诗。"),
+                book(132, "变形记", "弗兰茨·卡夫卡", "格里高尔的家庭关系与劳动身份。")));
+        var knowledge = new BookKnowledge(mapper);
+        assertEquals(java.util.Set.of(93,132), knowledge.retrieve("《变形记》的作者和简介是什么？").stream()
+                .map(h -> h.chunk().bookId()).collect(java.util.stream.Collectors.toSet()));
+        assertEquals(132, knowledge.retrieve("弗兰茨·卡夫卡的《变形记》简介").get(0).chunk().bookId());
+    }
+
+    @Test void lowSimilarityWithoutExactTitleOrAuthorStillHasNoEvidence() {
+        var mapper = mock(BookMapper.class);
+        var target = book(8, "诗歌总集", "古代编者", "山水与生活经验。");
+        when(mapper.findAssistantCandidates(anyList(), anyString())).thenReturn(List.of(target));
+        assertTrue(new BookKnowledge(mapper).retrieve("qzvxjkp729").isEmpty());
+    }
+
+    @Test void completePunctuatedTitleDoesNotRequireBigrams() {
+        var mapper = mock(BookMapper.class);
+        when(mapper.findAssistantCandidates(anyList(), anyString())).thenReturn(List.of(
+                book(110, "简·爱", "夏洛蒂·勃朗特", "成长与独立。")));
+        var hits = new BookKnowledge(mapper).retrieve("简·爱");
+        assertFalse(hits.isEmpty()); assertEquals(110, hits.get(0).chunk().bookId());
+    }
 }
