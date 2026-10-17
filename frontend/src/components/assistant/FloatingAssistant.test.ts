@@ -1,82 +1,40 @@
 import { flushPromises, mount } from '@vue/test-utils'
+import { createPinia, setActivePinia } from 'pinia'
+import { reactive } from 'vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import DefaultLayout from '@/layouts/DefaultLayout.vue'
 import { assistantApi, type AssistantAnswer } from '@/api/assistant.api'
 import { useAuthStore } from '@/stores/auth.store'
-import type { User } from '@/types/domain'
-
+import { useAssistantStore } from '@/stores/assistant.store'
 vi.mock('@/api/assistant.api', () => ({ assistantApi: { status: vi.fn(), ask: vi.fn() } }))
-vi.mock('@/stores/auth.store', async () => {
-  const { reactive } = await import('vue')
-  const auth = reactive({ user: { id: 1, username: 'fixture', role: 0 } as User | null, get isAuthenticated() { return Boolean(this.user) } })
-  return { useAuthStore: () => auth }
-})
-vi.mock('vue-router', async (importOriginal) => ({ ...await importOriginal<typeof import('vue-router')>(), useRoute: () => ({ fullPath: '/books?q=fiction' }) }))
-const mountLayout = () => mount(DefaultLayout, { attachTo: document.body, global: { stubs: { AppHeader: true, RouterView: true } } })
-beforeEach(() => {
-  vi.resetAllMocks()
-  useAuthStore().user = { id: 1, username: 'fixture', role: 0 }
-  vi.mocked(assistantApi.status).mockResolvedValue({ configured: true, provider: 'DeepSeek', model: 'fixture', documents: 6, chunks: 15 })
-})
-
-describe('floating book assistant', () => {
-  it('opens from the global entry, focuses close, and restores focus on Escape', async () => {
-    const wrapper = mountLayout()
-    const entry = wrapper.get('button[aria-controls="floating-assistant"]')
-    expect(entry.attributes('aria-expanded')).toBe('false')
-    expect(assistantApi.status).not.toHaveBeenCalled()
-    await entry.trigger('click'); await flushPromises()
-    expect(entry.attributes('aria-expanded')).toBe('true')
-    expect(document.activeElement?.getAttribute('aria-label')).toBe('关闭图书知识助手')
-    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' })); await flushPromises()
-    expect(entry.attributes('aria-expanded')).toBe('false')
-    expect(document.activeElement).toBe(entry.element)
-    wrapper.unmount()
+const route = reactive({ path: '/books', fullPath: '/books?q=fiction' })
+vi.mock('vue-router', async original => ({ ...await original<typeof import('vue-router')>(), useRoute: () => route }))
+let pinia: ReturnType<typeof createPinia>
+const mountLayout = () => mount(DefaultLayout, { attachTo: document.body, global: { plugins: [pinia], stubs: { AppHeader: true, RouterView: true, RouterLink: true } } })
+beforeEach(() => { vi.resetAllMocks(); pinia = createPinia(); setActivePinia(pinia); route.path = '/books'; route.fullPath = '/books?q=fiction'; useAuthStore().user = { id: 1, username: 'fixture', role: 0 }; vi.mocked(assistantApi.status).mockResolvedValue({ configured: true, provider: 'DeepSeek', model: 'fixture', documents: 6, chunks: 15 }); window.matchMedia = vi.fn().mockReturnValue({ matches: false }); Object.defineProperty(window, 'innerWidth', { configurable: true, value: 1366 }); Object.defineProperty(window, 'innerHeight', { configurable: true, value: 768 }) })
+describe('assistant entry and shared window', () => {
+  it('is discoverable, lazy loads, focuses close and restores focus on Escape', async () => {
+    const w = mountLayout(); const entry = w.get('.assistant-fab'); expect(entry.text()).toContain('问问 AI'); expect(assistantApi.status).not.toHaveBeenCalled()
+    await entry.trigger('click'); await flushPromises(); expect(document.activeElement?.getAttribute('aria-label')).toBe('收起 AI 阅读助手'); expect(w.get('#floating-assistant').attributes('aria-modal')).toBeUndefined(); expect(document.body.style.overflow).not.toBe('hidden')
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' })); await flushPromises(); expect(w.find('#floating-assistant').exists()).toBe(false); expect(document.activeElement).toBe(entry.element); w.unmount()
   })
-  it('can ask in the floating panel and honestly reports insufficient evidence', async () => {
-    vi.mocked(assistantApi.ask).mockResolvedValue({ status: 'NO_EVIDENCE', answer: '没有找到相关站内资料，本次未调用模型。', citations: [], modelCalled: false, model: '', requestId: '', inputTokens: 0, outputTokens: 0, elapsedMs: 0 })
-    const wrapper = mountLayout()
-    await wrapper.get('.assistant-fab').trigger('click'); await flushPromises()
-    await wrapper.get('textarea').setValue('未知图书')
-    await wrapper.get('form').trigger('submit'); await flushPromises()
-    expect(assistantApi.ask).toHaveBeenCalledWith('未知图书', 'LIBRARY')
-    expect(wrapper.get('.answer-text').text()).toContain('未调用模型')
-    await wrapper.get('.icon-button').trigger('click'); await flushPromises()
-    expect(wrapper.get('.assistant-fab').attributes('aria-expanded')).toBe('false')
-    wrapper.unmount()
+  it('retains in-flight answer and draft across collapse and ordinary navigation, and clears unread on open', async () => {
+    let resolve!: (a: AssistantAnswer) => void; vi.mocked(assistantApi.ask).mockImplementationOnce(() => new Promise(r => { resolve = r }))
+    const w = mountLayout(); await w.get('.assistant-fab').trigger('click'); await flushPromises(); await w.get('textarea').setValue('阅读建议'); await w.get('form').trigger('submit'); await w.get('textarea').setValue('下一题草稿'); await w.get('[aria-label="收起 AI 阅读助手"]').trigger('click')
+    route.path = '/books/7'; route.fullPath = '/books/7'; resolve({ status: 'GENERAL_KNOWLEDGE', answer: '先读短篇。', citations: [], modelCalled: true, model: 'fixture', requestId: '', inputTokens: 0, outputTokens: 0, elapsedMs: 0 }); await flushPromises(); expect(w.get('.assistant-fab').text()).toContain('有新回答')
+    await w.get('.assistant-fab').trigger('click'); await flushPromises(); expect(w.get('.answer-text').text()).toContain('先读短篇'); expect(w.get('textarea').element.value).toBe('下一题草稿'); expect(w.get('.assistant-fab').text()).not.toContain('有新回答'); expect(assistantApi.status).toHaveBeenCalledTimes(1); expect(assistantApi.ask).toHaveBeenCalledTimes(1); w.unmount()
   })
-  it('shows a connection failure and retries without inventing an answer', async () => {
-    vi.mocked(assistantApi.status).mockRejectedValueOnce(new Error('连接失败'))
-    const wrapper = mountLayout()
-    await wrapper.get('.assistant-fab').trigger('click'); await flushPromises()
-    expect(wrapper.get('[role="alert"]').text()).toContain('连接失败')
-    expect(wrapper.find('.answer-card').exists()).toBe(false)
-    await wrapper.get('.text-button').trigger('click'); await flushPromises()
-    expect(assistantApi.status).toHaveBeenCalledTimes(2)
-    wrapper.unmount()
+  it('shows connection failure and reconnects explicitly', async () => {
+    vi.mocked(assistantApi.status).mockRejectedValueOnce(new Error('连接失败')); const w = mountLayout(); await w.get('.assistant-fab').trigger('click'); await flushPromises(); expect(w.get('[role=alert]').text()).toContain('连接失败'); await w.findAll('button').find(b => b.text() === '重新连接')!.trigger('click'); await flushPromises(); expect(assistantApi.status).toHaveBeenCalledTimes(2); w.unmount()
   })
-  it('keeps an in-flight answer and history when closed and reopened', async () => {
-    let resolve!: (value: AssistantAnswer) => void
-    vi.mocked(assistantApi.ask).mockImplementationOnce(() => new Promise(r => { resolve = r }))
-    const wrapper = mountLayout()
-    await wrapper.get('.assistant-fab').trigger('click'); await flushPromises()
-    await wrapper.get('textarea').setValue('三体作者'); await wrapper.get('form').trigger('submit')
-    await wrapper.get('.icon-button').trigger('click'); await flushPromises()
-    resolve({ status: 'ANSWERED', answer: '三体作者为刘慈欣。', citations: [], modelCalled: true, model: 'fixture', requestId: '', inputTokens: 0, outputTokens: 0, elapsedMs: 0 })
-    await flushPromises(); await wrapper.get('.assistant-fab').trigger('click'); await flushPromises()
-    expect(wrapper.get('.answer-text').text()).toContain('刘慈欣')
-    expect(wrapper.get('textarea').element.value).toBe('三体作者')
-    expect(assistantApi.status).toHaveBeenCalledTimes(1)
-    wrapper.unmount()
+  it('offers guest login returning to current route and sends no assistant requests', async () => {
+    useAuthStore().user = null; const w = mountLayout(); await w.get('.assistant-fab').trigger('click'); await flushPromises(); expect(w.text()).toContain('登录后可向 AI 阅读助手提问'); const login = w.findAllComponents({ name: 'RouterLink' }).find(c => typeof c.props('to') === 'object')!; expect(login.props('to')).toEqual({ path: '/login', query: { redirect: '/books?q=fiction' } }); expect(assistantApi.status).not.toHaveBeenCalled(); expect(assistantApi.ask).not.toHaveBeenCalled(); w.unmount()
   })
-  it('offers guests a login link with the current route and sends no assistant requests', async () => {
-    useAuthStore().user = null
-    const wrapper = mount(DefaultLayout, { global: { stubs: { AppHeader: true, RouterView: true, RouterLink: true } } })
-    await wrapper.get('.assistant-fab').trigger('click'); await flushPromises()
-    expect(wrapper.text()).toContain('登录后可向图书知识助手提问')
-    expect(wrapper.findComponent({ name: 'RouterLink' }).props('to')).toEqual({ path: '/login', query: { redirect: '/books?q=fiction' } })
-    expect(wrapper.find('form').exists()).toBe(false)
-    expect(assistantApi.status).not.toHaveBeenCalled(); expect(assistantApi.ask).not.toHaveBeenCalled()
-    wrapper.unmount()
+  it('hides duplicate floating UI on full page while retaining session', async () => {
+    const w = mountLayout(); await w.get('.assistant-fab').trigger('click'); await flushPromises(); useAssistantStore().draft = '保留'; route.path = '/assistant'; route.fullPath = '/assistant'; await flushPromises(); expect(w.find('.assistant-fab').exists()).toBe(false); expect(w.find('#floating-assistant').exists()).toBe(false); expect(useAssistantStore().draft).toBe('保留'); w.unmount()
+  })
+  it('mobile uses modal semantics, locks background and releases on close', async () => {
+    Object.defineProperty(window, 'innerWidth', { configurable: true, value: 360 }); const w = mountLayout(); await w.get('.assistant-fab').trigger('click'); await flushPromises(); expect(w.get('#floating-assistant').attributes('role')).toBe('dialog'); expect(w.get('#floating-assistant').attributes('aria-modal')).toBe('true'); expect(document.body.style.overflow).toBe('hidden')
+    await w.get('[aria-label="收起 AI 阅读助手"]').trigger('click'); await flushPromises(); expect(document.body.style.overflow).not.toBe('hidden'); w.unmount()
   })
 })

@@ -1,3 +1,4 @@
+import type { AxiosRequestConfig } from 'axios'
 import { http, unwrap } from './http'
 import type { ApiResponse } from '@/types/api'
 
@@ -19,6 +20,8 @@ export interface Citation {
 export interface AssistantAnswer {
   status: 'ANSWERED' | 'GENERAL_KNOWLEDGE' | 'NO_EVIDENCE' | 'INSUFFICIENT' | 'UNVERIFIED'
   answer: string
+  relatedBooks?: { bookId: number; title: string }[]
+  generalSupplement?: string | null
   citations: Citation[]
   modelCalled: boolean
   model: string
@@ -29,9 +32,9 @@ export interface AssistantAnswer {
 }
 export const assistantApi = {
   async status() {
-    return unwrap((await http.get<ApiResponse<AssistantStatus>>('/assistant/status')).data)
+    return unwrap((await http.get<ApiResponse<AssistantStatus>>('/assistant/status', { retried: true } as AxiosRequestConfig & { retried: boolean })).data)
   },
-  async ask(question: string, mode: 'LIBRARY' | 'GENERAL' = 'LIBRARY') {
-    return unwrap((await http.post<ApiResponse<AssistantAnswer>>('/assistant/ask', { question, mode }, { timeout: 55000 })).data)
+  async ask(question: string, mode: 'AUTO' | 'LIBRARY' | 'GENERAL' = 'AUTO') {
+    return unwrap((await http.post<ApiResponse<AssistantAnswer>>('/assistant/ask', { question, mode }, { timeout: 55000, retried: true } as AxiosRequestConfig & { retried: boolean })).data)
   },
 }

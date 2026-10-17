@@ -47,9 +47,9 @@ class AssistantApiTest {
         }
         verify(model, never()).generate(anyString(), anyString());
     }
-    @Test void noEvidenceIsExplicitAndDoesNotSpendTokens() throws Exception {
+    @Test void legacyNoEvidenceIsExplicitAndDoesNotSpendTokens() throws Exception {
         mvc.perform(post("/api/assistant/ask").with(reader()).with(csrf()).contentType("application/json")
-                        .content("{\"question\":\"哈雷彗星轨道周期\"}"))
+                        .content("{\"question\":\"哈雷彗星轨道周期\",\"mode\":\"LIBRARY\"}"))
                 .andExpect(status().isOk()).andExpect(jsonPath("$.data.status").value("NO_EVIDENCE"))
                 .andExpect(jsonPath("$.data.modelCalled").value(false));
         verifyNoInteractions(model);
@@ -83,7 +83,7 @@ class AssistantApiTest {
         verifyNoInteractions(model, books);
     }
     @Test void explicitLibraryModePreservesTheDefaultNoEvidenceBehavior() throws Exception {
-        for (String mode : List.of("", ",\"mode\":\"LIBRARY\"")) {
+        for (String mode : List.of(",\"mode\":\"LIBRARY\"")) {
             mvc.perform(post("/api/assistant/ask").with(reader()).with(csrf()).contentType("application/json")
                     .content("{\"question\":\"哈雷彗星轨道周期\"" + mode + "}"))
                     .andExpect(status().isOk()).andExpect(jsonPath("$.data.status").value("NO_EVIDENCE"))
@@ -97,5 +97,25 @@ class AssistantApiTest {
         mvc.perform(post("/api/assistant/ask").with(reader()).with(csrf()).contentType("application/json")
                         .content("{\"question\":\"JWT 有效期\"}"))
                 .andExpect(status().isServiceUnavailable()).andExpect(jsonPath("$.code").value(503));
+    }
+
+    @Test void autoMissingNullAndExplicitModeGenerateOnceAndHaveNoInventedLinks() throws Exception {
+        when(model.ready()).thenReturn(true);
+        when(model.generate(eq(LearningAssistant.GENERAL_SYSTEM), anyString())).thenReturn(new LanguageModel.Generation(
+                "{\"status\":\"general\",\"answer\":\"可从短篇开始。\",\"citations\":[]}", "fixture", "fixture", 1, 1));
+        for (String suffix : List.of("", ",\"mode\":null", ",\"mode\":\"AUTO\"")) {
+            clearInvocations(model);
+            mvc.perform(post("/api/assistant/ask").with(reader()).with(csrf()).contentType("application/json")
+                    .content("{\"question\":\"哈雷彗星轨道周期\"" + suffix + "}"))
+                    .andExpect(status().isOk()).andExpect(jsonPath("$.data.status").value("GENERAL_KNOWLEDGE"))
+                    .andExpect(jsonPath("$.data.relatedBooks").isEmpty()).andExpect(jsonPath("$.data.citations").isEmpty());
+            verify(model, times(1)).generate(anyString(), anyString());
+        }
+    }
+    @Test void punctuationAutoDoesNotCallModel() throws Exception {
+        mvc.perform(post("/api/assistant/ask").with(reader()).with(csrf()).contentType("application/json")
+                .content("{\"question\":\"？！……\",\"mode\":\"AUTO\"}"))
+                .andExpect(status().isBadRequest());
+        verifyNoInteractions(model, books);
     }
 }

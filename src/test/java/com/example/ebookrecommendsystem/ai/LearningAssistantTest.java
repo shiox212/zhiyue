@@ -18,7 +18,7 @@ class LearningAssistantTest {
         return new LearningAssistant(new KnowledgeBase(json), books, model, new PromptInputPolicy(), new AnswerVerifier(json), new AiRequestGuard(), json);
     }
     @Test void noEvidenceDoesNotCallModel() throws Exception {
-        var result = service().ask(1, "哈雷彗星轨道周期");
+        var result = service().ask(1, "哈雷彗星轨道周期", LearningAssistant.Mode.LIBRARY);
         assertEquals("NO_EVIDENCE", result.status()); assertFalse(result.modelCalled());
         verifyNoInteractions(model);
     }
@@ -30,7 +30,7 @@ class LearningAssistantTest {
     }
     @Test void actualRetrievedChunksAreSeparatedFromSystemMessage() throws Exception {
         when(model.ready()).thenReturn(true);
-        when(model.generate(eq(LearningAssistant.SYSTEM), anyString())).thenAnswer(invocation -> {
+        when(model.generate(eq(LearningAssistant.AUTO_SYSTEM), anyString())).thenAnswer(invocation -> {
             var input = json.readTree(invocation.getArgument(1, String.class));
             assertEquals("JWT 访问令牌有效期多久", input.path("question").asText());
             assertTrue(input.path("references").size() <= 3);
@@ -47,17 +47,22 @@ class LearningAssistantTest {
         assertEquals(503, assertThrows(AiServiceException.class, () -> service().ask(1, "JWT 访问令牌有效期多久")).status());
         verify(model, never()).generate(anyString(), anyString());
     }
-    @Test void bookCitationLinksOnlyToServerSuppliedBook() throws Exception {
+    @Test void multipleBookFactsUseOneCitationLinkedOnlyToServerSuppliedBook() throws Exception {
         when(books.retrieve(anyString())).thenReturn(List.of(new TfidfIndex.Hit(
-                new KnowledgeChunk("book_42_1", "book_42", "三体", "书名：三体\n作者：刘慈欣\n分类：科幻小说", 42), .9)));
+                new KnowledgeChunk("book_42_1", "book_42", "三体", "书名：三体\n作者：刘慈欣\n简介：讲述地球文明与三体文明的接触。\n分类：科幻小说", 42), .9)));
         when(model.ready()).thenReturn(true);
-        when(model.generate(anyString(), anyString())).thenAnswer(invocation -> {
+        when(model.generate(eq(LearningAssistant.AUTO_SYSTEM), anyString())).thenAnswer(invocation -> {
             var input = json.readTree(invocation.getArgument(1, String.class));
             assertTrue(input.path("references").size() <= 3);
-            return new LanguageModel.Generation("{\"status\":\"answered\",\"answer\":\"作者为刘慈欣\",\"citations\":[{\"sourceId\":\"book_42_1\",\"quote\":\"作者：刘慈欣\",\"bookId\":99}]}", "fixture", "fixture", 1, 1);
+            return new LanguageModel.Generation(json.writeValueAsString(Map.of(
+                    "status", "answered", "answer", "作者为刘慈欣，简介为讲述地球文明与三体文明的接触。",
+                    "citations", List.of(Map.of("sourceId", "book_42_1", "quote",
+                            "作者：刘慈欣\n简介：讲述地球文明与三体文明的接触。", "bookId", 99)))), "fixture", "fixture", 1, 1);
         });
-        var answer = service().ask(1, "三体作者");
-        assertEquals("ANSWERED", answer.status()); assertEquals(42, answer.citations().get(0).bookId());
+        var answer = service().ask(1, "三体作者和简介");
+        assertEquals("ANSWERED", answer.status()); assertEquals(1, answer.citations().size());
+        assertEquals("作者：刘慈欣\n简介：讲述地球文明与三体文明的接触。", answer.citations().get(0).quote());
+        assertEquals(42, answer.citations().get(0).bookId());
     }
     @Test void generalKnowledgeCanAnswerWithoutSourcesAndNeverRetrievesBooks() throws Exception {
         when(model.ready()).thenReturn(true);
