@@ -2,7 +2,7 @@
 
 2026-10-17 本地收尾版本使用统一AUTO助手，包含T-010严格引用诊断、T-014会话与交互优化及T-015经典书目检索修复。界面无模式选择，默认先检索站内，未命中后生成通用知识，资料不足时可独立补充通用阅读方法。实现、自动测试、真实验收及历史回放的范围分别见下文。
 
-历史基线提交 `49fd926f6ffbe593f7677fbe09b1b8619a167aab` 的 [run 37714605273](https://github.com/shiox212/zhiyue/actions/runs/37714605273) 在2026-10-08只读核查时三项job成功；它不覆盖后续本地整合。GitHub上传、PR与合并仍暂停，最终本地HEAD以Git记录及工作根T-021封存清单为准，不宣称新提交云端CI通过。
+历史基线提交 `49fd926f6ffbe593f7677fbe09b1b8619a167aab` 的 [run 37714605273](https://github.com/shiox212/zhiyue/actions/runs/37714605273) 在2026-10-08只读核查时三项job成功；它不覆盖后续本地整合。2026-10-17用户已授权当前功能分支普通上传，PR与合并仍暂停。最终HEAD及上传结果以[功能分支](https://github.com/shiox212/zhiyue/tree/feature/experiment-5-rag)实际SHA为准，CI须核对[对应运行](https://github.com/shiox212/zhiyue/actions/workflows/ci.yml)；M25运行包业务源码对应6fc96ed，后续文档提交不重建运行版。
 
 ## 使用与回答模式
 
