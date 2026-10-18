@@ -104,11 +104,10 @@ class UserServiceTest {
     }
 
     @Test
-    @DisplayName("登录成功：明文密码回退兼容")
-    void shouldLoginWithPlaintextFallback() {
+    @DisplayName("登录拒绝：明文密码不再作为回退")
+    void shouldRejectPlaintextFallback() {
         dbUser.setPassword("123456"); // 明文存储的密码
         when(userMapper.findByUsername("zhangsan")).thenReturn(dbUser);
-        when(passwordEncoder.matches("123456", "123456")).thenReturn(false); // BCrypt 不匹配
 
         User input = new User();
         input.setUsername("zhangsan");
@@ -116,8 +115,8 @@ class UserServiceTest {
 
         Result<User> result = userService.login(input);
 
-        assertEquals(200, result.getCode());
-        assertTrue(result.getMsg().contains("登录成功"));
+        assertEquals(500, result.getCode());
+        assertEquals("登录失败：密码错误！", result.getMsg());
     }
 
     @Test

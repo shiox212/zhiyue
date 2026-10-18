@@ -106,7 +106,6 @@ const submit = async () => {
             autocomplete="username"
             :aria-invalid="Boolean(errors.username)"
             :aria-describedby="errors.username ? 'username-error' : undefined"
-            @blur="validate"
           />
           <p v-if="errors.username" id="username-error" class="field-error" role="alert">{{ errors.username }}</p>
         </div>
@@ -122,7 +121,6 @@ const submit = async () => {
               :autocomplete="registering ? 'new-password' : 'current-password'"
               :aria-invalid="Boolean(errors.password)"
               :aria-describedby="errors.password ? 'password-error' : undefined"
-              @blur="validate"
             />
             <button type="button" class="password-toggle" :aria-label="showPassword ? '隐藏密码' : '显示密码'" @click="showPassword = !showPassword">
               {{ showPassword ? '隐藏' : '显示' }}

@@ -1,6 +1,7 @@
 package com.example.ebookrecommendsystem.controller;
 
 import com.example.ebookrecommendsystem.common.Result;
+import com.example.ebookrecommendsystem.security.Identity;
 import com.example.ebookrecommendsystem.service.RecommendService;
 import com.example.ebookrecommendsystem.vo.RecommendedBookVO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +18,6 @@ public class RecommendController {
 
     @GetMapping("/get")
     public Result<List<RecommendedBookVO>> getRecommend(@RequestParam Integer userId) {
-        return recommendService.getRecommendBooks(userId);
+        return recommendService.getRecommendBooks(Identity.own(userId));
     }
 }

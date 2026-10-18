@@ -49,9 +49,9 @@ public class UserService {
             return Result.error("登录失败：账号不存在！");
         }
 
-        // 优先使用 BCrypt 校验，兼容存量明文密码（回退比对）
-        boolean passwordMatch = passwordEncoder.matches(user.getPassword(), dbUser.getPassword())
-                || dbUser.getPassword().equals(user.getPassword());
+        // Legacy plaintext rows must be migrated offline, never used as login fallback.
+        boolean passwordMatch = dbUser.getPassword() != null && dbUser.getPassword().startsWith("$2")
+                && passwordEncoder.matches(user.getPassword(), dbUser.getPassword());
 
         if (!passwordMatch) {
             return Result.error("登录失败：密码错误！");
@@ -128,8 +128,7 @@ public class UserService {
         if (dbPassword == null) {
             return Result.error("用户不存在");
         }
-        boolean oldMatch = passwordEncoder.matches(oldPassword, dbPassword)
-                || dbPassword.equals(oldPassword);
+        boolean oldMatch = dbPassword.startsWith("$2") && passwordEncoder.matches(oldPassword, dbPassword);
         if (!oldMatch) {
             return Result.error("当前密码不正确");
         }

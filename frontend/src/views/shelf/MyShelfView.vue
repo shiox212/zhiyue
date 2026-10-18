@@ -120,7 +120,7 @@ onMounted(load)
 .shelf-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 290px), 1fr)); gap: 18px; }
 .shelf-card { display: grid; grid-template-columns: 112px minmax(0, 1fr); overflow: hidden; }
 .shelf-card__cover { display: grid; min-height: 190px; place-items: center; background: linear-gradient(145deg, var(--color-primary-soft), var(--color-canvas-soft)); color: var(--color-primary); font-family: var(--font-reading); font-weight: 800; letter-spacing: .18em; text-decoration: none; }
-.shelf-card__cover img { width: 100%; height: 100%; object-fit: cover; }
+.shelf-card__cover img { width: 100%; height: 100%; object-fit: contain; }
 .shelf-card__body { display: grid; align-content: start; gap: 8px; padding: 16px; }
 .shelf-card h2 { margin: 0; font-family: var(--font-reading); font-size: 1.1rem; line-height: 1.35; }
 .shelf-card h2 a { text-decoration: none; }

@@ -1,8 +1,10 @@
 import { fileURLToPath, URL } from 'node:url'
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 import vue from '@vitejs/plugin-vue'
 
-export default defineConfig({
+export default defineConfig(({ mode }) => {
+ const backend = loadEnv(mode, process.cwd(), '').VITE_BACKEND_URL || 'http://127.0.0.1:8081'
+ return {
   plugins: [vue()],
   resolve: {
     alias: {
@@ -13,7 +15,7 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': {
-        target: 'http://localhost:8081',
+        target: backend,
         changeOrigin: true,
       },
     },
@@ -25,7 +27,8 @@ export default defineConfig({
   preview: {
     port: 5174,
     proxy: {
-      '/api': { target: 'http://localhost:8081', changeOrigin: true },
+      '/api': { target: backend, changeOrigin: true },
     },
   },
+ }
 })

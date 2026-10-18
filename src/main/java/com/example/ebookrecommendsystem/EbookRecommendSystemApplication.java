@@ -9,7 +9,10 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 public class EbookRecommendSystemApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(EbookRecommendSystemApplication.class, args);
+        var context=SpringApplication.run(EbookRecommendSystemApplication.class, args);
+        if(context.getEnvironment().getProperty("app.security.migrate-legacy-passwords",Boolean.class,false)) {
+            context.close();
+        }
     }
 
 }

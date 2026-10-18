@@ -18,6 +18,17 @@ import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+    @ExceptionHandler(com.example.ebookrecommendsystem.ai.AiServiceException.class)
+    public org.springframework.http.ResponseEntity<Result<Object>> aiUnavailable(com.example.ebookrecommendsystem.ai.AiServiceException e) {
+        return org.springframework.http.ResponseEntity.status(e.status()).body(Result.error(e.status(), e.getMessage()));
+    }
+    @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public Result<Object> denied(Exception e) { return Result.error(403, "无权访问或不能操作其他用户的数据"); }
+    @ExceptionHandler(org.springframework.security.core.AuthenticationException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public Result<Object> unauthenticated(Exception e) { return Result.error(401, "账号或密码不正确，或登录已失效"); }
+
 
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
