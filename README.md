@@ -1,8 +1,8 @@
 # 知阅课程实验项目
 
-**最终程序源码位于 [feature/experiment-5-rag](https://github.com/shiox212/zhiyue/tree/feature/experiment-5-rag)。** 默认 `main` 和 `develop` 保留实验二基线，查看或下载当前程序请使用该功能分支。五个实验的程序整合、统一AUTO助手和书架封面修复均已提交；版本对应、运行方式与验收范围见[最终状态说明](docs/final-state.md)。
+**课程最终程序入口为 [main](https://github.com/shiox212/zhiyue/tree/main)。** 五个实验的程序整合、统一AUTO助手和书架封面修复通过 `feature/experiment-5-rag → develop → main` 流程交付。源码安装步骤见[环境与启动说明](docs/setup.md)，版本对应与验收范围见[最终状态说明](docs/final-state.md)。
 
-[![CI](https://github.com/shiox212/zhiyue/actions/workflows/ci.yml/badge.svg?branch=feature%2Fexperiment-5-rag)](https://github.com/shiox212/zhiyue/actions/workflows/ci.yml?query=branch%3Afeature%2Fexperiment-5-rag)
+[![CI](https://github.com/shiox212/zhiyue/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/shiox212/zhiyue/actions/workflows/ci.yml?query=branch%3Amain)
 
 知阅提供图书浏览、用户登录、书架和阅读互动。后端 Java 17 / Spring Boot 3.3.5 / MyBatis，前端 Vue 3 / TypeScript / Vite，数据库 MySQL 8。实验四使用 JWT、HttpOnly Cookie、RBAC 和 CSRF 校验；实验五为统一 AUTO 阅读助手，先检索站内资料，未命中时生成通用知识，部分资料不足时分区补充。当前实现包含T-009登录交互修复、T-010严格引用诊断、T-014统一助手与T-015经典书目检索兼容修复。
 
@@ -16,13 +16,13 @@ T-019已验证用户窗口启动、q停止释放端口、重启，以及15:17至
 
 真实站内引用另有T-016/T-018证据；T-020引用展开与跳转后重开使用T-010完整历史响应回放通过（0新增模型），须与新实模区分。旧503的SDK异常及旧进程退出原因仍未知，书卡17检索噪声、真机软键盘与细致视觉留待后续。每次正式提问可能调用服务商并计费，失败后不自动重试。
 
-源码与M25的对应关系已在[最终状态说明](docs/final-state.md)中列出，原始测试日志、启动停止记录和交付清单保留在本机工作根 `协作交接`。2026-10-18通过Git远程查询与GitHub API核实，整合提交 `112e869` 已上传，且[对应CI](https://github.com/shiox212/zhiyue/actions/runs/39021093470)三个job全部成功；22份关键业务源码及35份M25产物匹配原装配记录。M25业务源码对应 `6fc96ed`，之后的 `112e869` 及本次同步均仅更新说明。新增说明提交的CI应以[功能分支对应运行](https://github.com/shiox212/zhiyue/actions/workflows/ci.yml?query=branch%3Afeature%2Fexperiment-5-rag)实际SHA为准。PR和合并保持原状态，不新增模型请求或数据操作。
+源码与M25的对应关系见[最终状态说明](docs/final-state.md)，原始测试日志、启动停止记录和交付清单保留在本机工作根。22份关键业务源码及35份M25产物匹配原装配记录；最后业务改动为 `6fc96ed`，之后仅更新说明和执行保留历史的集成合并。最终提交使用main的准确SHA及[对应CI](https://github.com/shiox212/zhiyue/actions/workflows/ci.yml?query=branch%3Amain)，历史功能分支CI单列。独立MySQL8.0.44新实例已验证12表初始化、V004重复执行及空书库API，未连接原137本演示库，也未新增模型调用。
 
 ## 发布副本
 
 这是从本机实验二代码快照创建的独立 Git 历史。本机原始提交和私人实验材料保留在本地，本仓库不携带原始 SQL 数据、旧口令历史、私人 PDF/Word 附件及原始基线标签。业务源码和自动化测试保持一致。
 
-`main` / `develop` 为实验二基线，`feature/experiment-3-git-ci` 引入实验三CI修复并保留真实草稿PR1；`feature/experiment-5-rag` 包含后续安全、RAG、AUTO助手及最终封面修复，是当前程序入口。现有[PR1](https://github.com/shiox212/zhiyue/pull/1)来自实验三分支，不代表当前功能分支已合并；远程证据见[证据索引](docs/evidence/evidence-index.md)。
+独立历史以实验二为基线；`feature/experiment-3-git-ci` 引入实验三CI修复并保留[原PR1](https://github.com/shiox212/zhiyue/pull/1)。后续安全、RAG、AUTO助手和最终封面修复在 `feature/experiment-5-rag` 汇总，通过面向develop的集成PR和develop到main的交付PR保留过程。远程证据见[证据索引](docs/evidence/evidence-index.md)，最终下载入口使用main。
 
 ## 源码开发启动
 

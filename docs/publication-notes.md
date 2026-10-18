@@ -6,6 +6,6 @@
 
 ## 当前最终程序入口
 
-当前完整成果在[feature/experiment-5-rag](https://github.com/shiox212/zhiyue/tree/feature/experiment-5-rag)，默认main/develop仍是上述基线。最终业务改动为6fc96ed，整合基准112e869已上传且对应CI三项通过；后续说明提交的结果需核对各自准确SHA。版本对应、运行方式与已知范围见[最终状态说明](final-state.md)，实际远程证据见[证据索引](evidence/evidence-index.md)。
+最终成果提交入口为[main](https://github.com/shiox212/zhiyue/tree/main)，通过功能分支到develop、develop到main的PR流程保留集成历史。最终业务改动为6fc96ed，112e869及6b4e879是后续说明基准；最终主分支以其准确SHA和CI为准。版本对应见[最终状态说明](final-state.md)，源码安装见[环境说明](setup.md)，远程证据见[证据索引](evidence/evidence-index.md)。
 
-本机M25运行版、137本演示馆藏、个人合并报告及截图另行本地交付，不作为源码文件混入仓库。本轮仅核对并同步功能分支，未合并main/develop或发布运行包。
+本机M25运行版、137本演示馆藏、个人合并报告及截图另行本地交付，不作为源码文件混入仓库。公开前检查已入库文件与可达历史，不携带本机.env、真实用户库、旧私人附件或依赖缓存；配置模板只提供占位字段。仓库可见性、合并SHA与最终CI以交付核查记录为准，不发布本机运行包。

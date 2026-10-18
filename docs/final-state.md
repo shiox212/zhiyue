@@ -1,16 +1,17 @@
 # 知阅最终程序状态
 
-2026-10-18核对。当前完整程序在[feature/experiment-5-rag](https://github.com/shiox212/zhiyue/tree/feature/experiment-5-rag)，默认main与develop仍保留实验二基线。下载或检查最终成果时选择当前功能分支。
+课程交付入口为[main](https://github.com/shiox212/zhiyue/tree/main)。最终程序通过 `feature/experiment-5-rag → develop → main` 集成，保留功能分支、PR及CI历史；下载和检查课程成果使用main或提交说明中的准确提交。
 
 ## 源码与本机演示版
 
 | 项目 | 对应关系 |
 | --- | --- |
 | 最后业务改动 | `6fc96ed898f78d6cdbf57b82f6f4fd59b62338d1`，修复书架封面被裁切；已包含登录交互、检索排序、统一AUTO助手和会话保留 |
-| 已上传整合基准 | `112e869b743754e8cfdcf99f11fdbdee08c48962`，在上述业务代码后更新README/实验五说明；本次后续提交也仅同步说明 |
+| 历史整合基准 | `112e869b743754e8cfdcf99f11fdbdee08c48962`，之后6b4e879同步最终说明；后续为提交说明完善与保留历史的集成合并 |
 | 最终本机运行版 | 工作根下`知阅-本机运行版-20261017-M25`，新前端、原M15同一后端JAR及启动器；旧运行版保留 |
 | 文件核对 | 22份关键业务源码和35份运行产物匹配M25原装配指纹；6fc96ed至112e869仅两份说明变化 |
-| 自动验证 | 112e869的[run39021093470](https://github.com/shiox212/zhiyue/actions/runs/39021093470)三个job全部成功；后续提交查看[各自CI](https://github.com/shiox212/zhiyue/actions/workflows/ci.yml?query=branch%3Afeature%2Fexperiment-5-rag) |
+| 自动验证 | 最终main以[准确提交的CI](https://github.com/shiox212/zhiyue/actions/workflows/ci.yml?query=branch%3Amain)核对；历史功能分支及PR运行各自保留，不用旧结果替代 |
+| 空库安装 | 独立MySQL8.0.44实例12表初始化、V004重复执行、角色/权限数量及后端空书库API验证通过；原演示库未操作 |
 
 | 本机M25产物 | SHA256 |
 | --- | --- |
@@ -40,4 +41,4 @@
 
 本次GitHub核对不操作服务，不新增模型请求或数据库写入。历史窗口启动/q停止/重启和观察区间可用不等于当前服务在线或无限期稳定；旧503的SDK异常和旧进程退出原因仍未知。嵌入窄屏检查不等同手机真机，书目简介不等于全文，引用校验通过也不保证结论正确。
 
-现有PR1属于实验三分支，仍为未合并草稿。当前功能分支未合并到main/develop，未发布Release；远程CI、人工确认和实际部署分别记录。
+原PR1属于实验三CI阶段；本次最终交付使用功能分支到develop、develop到main的PR流程。人工确认来自提交者，未编造他人的GitHub Review；PR合并、准确提交CI与实际服务部署分别记录。源码运行步骤见[环境说明](setup.md)，本次不发布本机运行包Release。
