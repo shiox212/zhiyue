@@ -2,7 +2,7 @@
 
 2026-10-17 本地收尾版本使用统一AUTO助手，包含T-010严格引用诊断、T-014会话与交互优化及T-015经典书目检索修复。界面无模式选择，默认先检索站内，未命中后生成通用知识，资料不足时可独立补充通用阅读方法。实现、自动测试、真实验收及历史回放的范围分别见下文。
 
-历史基线提交 `49fd926f6ffbe593f7677fbe09b1b8619a167aab` 的 [run 37714605273](https://github.com/shiox212/zhiyue/actions/runs/37714605273) 在2026-10-08只读核查时三项job成功；它不覆盖后续本地整合。2026-10-17用户已授权当前功能分支普通上传，PR与合并仍暂停。最终HEAD及上传结果以[功能分支](https://github.com/shiox212/zhiyue/tree/feature/experiment-5-rag)实际SHA为准，CI须核对[对应运行](https://github.com/shiox212/zhiyue/actions/workflows/ci.yml)；M25运行包业务源码对应6fc96ed，后续文档提交不重建运行版。
+2026-10-18通过Git和GitHub API复核：包含最终程序的整合提交 `112e869b743754e8cfdcf99f11fdbdee08c48962` 已上传至[当前功能分支](https://github.com/shiox212/zhiyue/tree/feature/experiment-5-rag)，[准确提交的run 39021093470](https://github.com/shiox212/zhiyue/actions/runs/39021093470)三个job均成功。M25运行业务源码对应 `6fc96ed`，其后提交仅更新文档，不重建或替换运行版；22份关键业务源码和35份运行产物匹配装配记录。版本对应与运行边界见[最终状态说明](final-state.md)。默认main仍是实验二基线，PR/合并保持原状态；新增说明提交须核对其[对应CI](https://github.com/shiox212/zhiyue/actions/workflows/ci.yml?query=branch%3Afeature%2Fexperiment-5-rag)，旧49fd926的CI仅作历史证据。
 
 ## 使用与回答模式
 

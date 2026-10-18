@@ -1,5 +1,9 @@
 # 知阅课程实验项目
 
+**最终程序源码位于 [feature/experiment-5-rag](https://github.com/shiox212/zhiyue/tree/feature/experiment-5-rag)。** 默认 `main` 和 `develop` 保留实验二基线，查看或下载当前程序请使用该功能分支。五个实验的程序整合、统一AUTO助手和书架封面修复均已提交；版本对应、运行方式与验收范围见[最终状态说明](docs/final-state.md)。
+
+[![CI](https://github.com/shiox212/zhiyue/actions/workflows/ci.yml/badge.svg?branch=feature%2Fexperiment-5-rag)](https://github.com/shiox212/zhiyue/actions/workflows/ci.yml?query=branch%3Afeature%2Fexperiment-5-rag)
+
 知阅提供图书浏览、用户登录、书架和阅读互动。后端 Java 17 / Spring Boot 3.3.5 / MyBatis，前端 Vue 3 / TypeScript / Vite，数据库 MySQL 8。实验四使用 JWT、HttpOnly Cookie、RBAC 和 CSRF 校验；实验五为统一 AUTO 阅读助手，先检索站内资料，未命中时生成通用知识，部分资料不足时分区补充。当前实现包含T-009登录交互修复、T-010严格引用诊断、T-014统一助手与T-015经典书目检索兼容修复。
 
 ## 当前本机演示（2026-10-17）
@@ -12,13 +16,13 @@ T-019已验证用户窗口启动、q停止释放端口、重启，以及15:17至
 
 真实站内引用另有T-016/T-018证据；T-020引用展开与跳转后重开使用T-010完整历史响应回放通过（0新增模型），须与新实模区分。旧503的SDK异常及旧进程退出原因仍未知，书卡17检索噪声、真机软键盘与细致视觉留待后续。每次正式提问可能调用服务商并计费，失败后不自动重试。
 
-源码与M25的对应、测试原始日志、启动停止说明和交付清单位于工作根 `协作交接`。2026-10-17用户已授权将当前功能分支普通上传GitHub，PR和合并仍暂停；上传及CI结果以[功能分支](https://github.com/shiox212/zhiyue/tree/feature/experiment-5-rag)和[对应Actions](https://github.com/shiox212/zhiyue/actions/workflows/ci.yml)实际SHA为准，不用旧提交的通过结果代替。M25运行包业务源码对应6fc96ed，后续上传说明提交单列；本任务不新增模型请求，不导入/回滚数据或修改已有密码。
+源码与M25的对应关系已在[最终状态说明](docs/final-state.md)中列出，原始测试日志、启动停止记录和交付清单保留在本机工作根 `协作交接`。2026-10-18通过Git远程查询与GitHub API核实，整合提交 `112e869` 已上传，且[对应CI](https://github.com/shiox212/zhiyue/actions/runs/39021093470)三个job全部成功；22份关键业务源码及35份M25产物匹配原装配记录。M25业务源码对应 `6fc96ed`，之后的 `112e869` 及本次同步均仅更新说明。新增说明提交的CI应以[功能分支对应运行](https://github.com/shiox212/zhiyue/actions/workflows/ci.yml?query=branch%3Afeature%2Fexperiment-5-rag)实际SHA为准。PR和合并保持原状态，不新增模型请求或数据操作。
 
 ## 发布副本
 
 这是从本机实验二代码快照创建的独立 Git 历史。本机原始提交和私人实验材料保留在本地，本仓库不携带原始 SQL 数据、旧口令历史、私人 PDF/Word 附件及原始基线标签。业务源码和自动化测试保持一致。
 
-main/develop 为实验二基线，feature/experiment-3-git-ci 引入实验三 CI 修复。基线不启用旧的占位 CI，实际工作流由实验三功能分支引入，便于真实 PR 审阅。
+`main` / `develop` 为实验二基线，`feature/experiment-3-git-ci` 引入实验三CI修复并保留真实草稿PR1；`feature/experiment-5-rag` 包含后续安全、RAG、AUTO助手及最终封面修复，是当前程序入口。现有[PR1](https://github.com/shiox212/zhiyue/pull/1)来自实验三分支，不代表当前功能分支已合并；远程证据见[证据索引](docs/evidence/evidence-index.md)。
 
 ## 源码开发启动
 
@@ -34,7 +38,7 @@ main/develop 为实验二基线，feature/experiment-3-git-ci 引入实验三 CI
 
 ## 验证与实验状态
 
-后端在根目录执行 mvn verify。前端执行 npm run typecheck、npm run test、npm run build。前端未配置 ESLint。实验四本地测试覆盖 JWT、CSRF、RBAC、跨用户访问、刷新重放、退出撤销和 AI 输入检查。实际结果以各次验证记录为准，不能推断本分支已通过云端 CI。
+后端在根目录执行 mvn verify。前端执行 npm run typecheck、npm run test、npm run build。前端未配置 ESLint。实验四本地测试覆盖 JWT、CSRF、RBAC、跨用户访问、刷新重放、退出撤销和 AI 输入检查。准确整合提交 `112e869` 的云端CI已核实通过；其他提交须核对各自运行，不能把模拟测试当成真实MySQL或模型验证。
 
 密码使用 BCrypt，已移除在线明文兼容，旧数据需显式离线迁移。个人数据接口由服务端核对身份。AI 输入检查只是模型接入前的有限防护，仓库不代表生产安全验收通过。
 
