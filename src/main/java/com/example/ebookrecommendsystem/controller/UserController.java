@@ -1,64 +1,36 @@
 package com.example.ebookrecommendsystem.controller;
-
 import com.example.ebookrecommendsystem.common.Result;
 import com.example.ebookrecommendsystem.entity.User;
 import com.example.ebookrecommendsystem.service.UserService;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
+import com.example.ebookrecommendsystem.security.*;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.validation.constraints.*;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.Map;
-
 @RestController
 @RequestMapping("/api/user")
 public class UserController {
-
-    @Autowired
-    private UserService userService;
-
-    @PostMapping("/register")
-    public Result<Object> register(@RequestBody @Valid User user) {
-        return userService.register(user);
+    public record Registration(@NotBlank @Size(min=3,max=20) String username,@NotBlank @Size(min=6,max=20) String password,@Size(max=20) String nickname) {}
+    public record Profile(Integer userId,@NotBlank @Size(max=20) String nickname) {}
+    public record PasswordChange(Integer userId,@NotBlank String oldPassword,@NotBlank @Size(min=6,max=20) String newPassword) {}
+    private final UserService users;
+    private final AccountSessions sessions;
+    private final TokenCookies cookies;
+    public UserController(UserService users,AccountSessions sessions,TokenCookies cookies){this.users=users;this.sessions=sessions;this.cookies=cookies;}
+    @PostMapping("/register") public Result<Object> register(@RequestBody @Valid Registration input) {
+        User user=new User();user.setUsername(input.username());user.setPassword(input.password());user.setNickname(input.nickname());
+        return sessions.register(user);
     }
-
-    @PostMapping("/login")
-    public Result<User> login(@RequestBody @Valid User user, HttpSession session, HttpServletRequest request) {
-        Result<User> result = userService.login(user);
-        if (result.getCode() == 200) {
-            session.invalidate();
-            HttpSession newSession = request.getSession(true);
-            newSession.setAttribute("loginUser", result.getData());
-        }
+    @PostMapping("/profile/update") public Result<User> updateProfile(@RequestBody @Valid Profile input) {
+        return users.updateProfile(Identity.own(input.userId()),input.nickname());
+    }
+    @PostMapping("/password/change") public Result<Object> changePassword(@RequestBody @Valid PasswordChange input,HttpServletResponse response) {
+        var result=sessions.changePassword(Identity.own(input.userId()),input.oldPassword(),input.newPassword());
+        if(result.getCode()==200)cookies.clear(response);
         return result;
     }
-
-    @PostMapping("/profile/update")
-    public Result<User> updateProfile(@RequestBody Map<String, Object> params, HttpSession session) {
-        Integer id = (Integer) params.get("userId");
-        String nickname = (String) params.get("nickname");
-        Result<User> result = userService.updateProfile(id, nickname);
-        if (result.getCode() == 200) {
-            session.setAttribute("loginUser", result.getData());
-        }
-        return result;
-    }
-
-    @PostMapping("/password/change")
-    public Result<Object> changePassword(@RequestBody Map<String, Object> params, HttpSession session) {
-        Integer id = (Integer) params.get("userId");
-        String oldPassword = (String) params.get("oldPassword");
-        String newPassword = (String) params.get("newPassword");
-        Result<Object> result = userService.changePassword(id, oldPassword, newPassword);
-        if (result.getCode() == 200) {
-            session.invalidate();
-        }
-        return result;
-    }
-
-    @GetMapping("/stats")
-    public Result<Map<String, Object>> stats(@RequestParam Integer userId) {
-        return userService.getUserStats(userId);
+    @GetMapping("/stats") public Result<Map<String,Object>> stats(@RequestParam(required=false) Integer userId) {
+        return users.getUserStats(Identity.own(userId));
     }
 }

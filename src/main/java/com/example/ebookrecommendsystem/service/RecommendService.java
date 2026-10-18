@@ -23,7 +23,7 @@ public class RecommendService {
 
     private final Map<Integer, List<RecommendedBookVO>> recommendCache = new ConcurrentHashMap<>();
 
-    @Scheduled(fixedRate = 1800000)
+    @Scheduled(fixedRate = 1800000, initialDelayString = "${app.recommend.initial-delay-ms:0}")
     public void refreshRecommendCache() {
         List<Rating> allRatings = ratingMapper.findAllRatings();
         if (allRatings == null || allRatings.isEmpty()) return;

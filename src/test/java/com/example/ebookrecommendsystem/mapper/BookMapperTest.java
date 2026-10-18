@@ -129,6 +129,23 @@ class BookMapperTest {
         assertEquals(4.0, book1.getAvgScore(), 0.01); // (5+4+3)/3
     }
 
+    @Test void assistantProjectsOnlyMatchingPublicMetadataAndTreatsWildcardsLiterally() {
+        var books = bookMapper.findAssistantCandidates(List.of("刘慈欣"), "刘慈欣");
+        assertEquals(1, books.size()); assertEquals("三体", books.get(0).getTitle());
+        assertNull(books.get(0).getCreateTime()); assertNull(books.get(0).getCoverUrl());
+        assertTrue(bookMapper.findAssistantCandidates(List.of("%", "_", "' OR 1=1 --"), "' OR 1=1 --").isEmpty());
+    }
+    @Test void assistantKeepsExactHighIdTitleAndAuthorAheadOfMoreThanTwentyGenericCandidates() {
+        for (int id = 10; id < 35; id++) {
+            jdbc.update("INSERT INTO book(id, title, author, description) VALUES (?, ?, ?, ?)",
+                    id, "其他图书" + id, "其他作者" + id, "图书作者简介");
+        }
+        jdbc.update("INSERT INTO book(id, title, author, description) VALUES (99, '银河帝国选集', '阿西莫夫', '图书作者简介')");
+        var byTitle = bookMapper.findAssistantCandidates(List.of("作者", "简介", "银河"), "银河帝国选集的作者和简介");
+        assertEquals(20, byTitle.size()); assertEquals(99, byTitle.get(0).getId());
+        var byAuthor = bookMapper.findAssistantCandidates(List.of("作者", "简介", "阿西"), "阿西莫夫的作品简介");
+        assertEquals(20, byAuthor.size()); assertTrue(byAuthor.subList(0, 2).stream().anyMatch(book -> book.getId() == 99));
+    }
     @Test
     @DisplayName("热门排行：按评分人数降序")
     void shouldReturnBooksOrderedByRatingCount() {
@@ -143,5 +160,34 @@ class BookMapperTest {
         assertEquals(2, books.get(1).getRankNum());
         // 图书3（0人评分）排第三
         assertEquals(3, books.get(2).getId());
+    }
+
+    @Test void assistantFindsExactPunctuatedTitleEvenWithoutChineseBigrams() {
+        jdbc.update("INSERT INTO book(id, title, author, description) VALUES (110, '简·爱', '夏洛蒂·勃朗特', '成长与独立')");
+        var books = bookMapper.findAssistantCandidates(List.of("作者", "简介"), "《简·爱》的作者和简介是什么？");
+        assertEquals(1, books.size()); assertEquals(110, books.get(0).getId());
+        assertNull(books.get(0).getCoverUrl());
+    }
+
+    @Test void assistantKeepsExplicitAuthorAheadOfOtherWorksSharingTheTitle() {
+        for (int id=10;id<35;id++) jdbc.update("INSERT INTO book(id,title,author) VALUES (?, '变形记', ?)",id,"其他作者"+id);
+        jdbc.update("INSERT INTO book(id,title,author) VALUES (132, '变形记', '弗兰茨·卡夫卡')");
+        var books=bookMapper.findAssistantCandidates(List.of("变形"),"弗兰茨·卡夫卡的《变形记》简介");
+        assertEquals(20,books.size()); assertEquals(132,books.get(0).getId());
+    }
+
+    @Test void assistantDoesNotMatchMissingMetadataOrTreatBlankValuesAsExactMatches() {
+        jdbc.update("INSERT INTO book(id,title,author) VALUES (110, '无关作品', '')");
+        jdbc.update("INSERT INTO book(id,title,author) VALUES (111, ' ', ' ')");
+        jdbc.update("INSERT INTO book(id,title,author) VALUES (112, '', NULL)");
+        assertTrue(bookMapper.findAssistantCandidates(List.of("qzvxjkp729"), "qzvxjkp729").isEmpty());
+        assertTrue(bookMapper.findAssistantCandidates(List.of("无关"), "无关作品简介").stream()
+                .noneMatch(book -> book.getId() == 111 || book.getId() == 112));
+    }
+
+    @Test void assistantCanFindCompletePunctuatedTitleWithNoTokenizedKeywords() {
+        jdbc.update("INSERT INTO book(id,title,author) VALUES (110, '简·爱', '夏洛蒂·勃朗特')");
+        var books = bookMapper.findAssistantCandidates(List.of(), "简·爱");
+        assertEquals(1, books.size()); assertEquals(110, books.get(0).getId());
     }
 }

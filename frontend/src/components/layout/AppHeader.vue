@@ -3,9 +3,12 @@ import { computed, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth.store'
+import { useAssistantStore } from '@/stores/assistant.store'
 import { useUiStore } from '@/stores/ui.store'
 import { avatarLetter, displayName } from '@/utils/format'
 
+const assistant = useAssistantStore()
+const openAssistant = (event: MouseEvent) => { menuOpen.value = false; if (route.path === "/assistant") document.querySelector<HTMLTextAreaElement>(".assistant-chat textarea")?.focus(); else assistant.show(event.currentTarget as HTMLElement) }
 const auth = useAuthStore()
 const ui = useUiStore()
 const router = useRouter()
@@ -52,6 +55,7 @@ const logout = async () => {
           <RouterLink to="/books">发现</RouterLink>
           <RouterLink v-if="isAuthenticated" to="/recommendations">推荐</RouterLink>
           <RouterLink v-if="isAuthenticated" to="/shelf">书架</RouterLink>
+          <button type="button" class="assistant-nav-entry" @click="openAssistant">AI 阅读助手</button>
         </nav>
 
         <div class="account-actions">
@@ -82,7 +86,8 @@ const logout = async () => {
 .nav-panel { position: absolute; top: 72px; right: 0; left: 0; display: none; border-bottom: 1px solid var(--color-border); background: var(--color-surface); padding: 12px 16px 20px; box-shadow: var(--shadow-md); }
 .nav-panel--open { display: grid; gap: 14px; }
 .primary-nav { display: grid; gap: 4px; }
-.primary-nav a { display: flex; min-height: 44px; align-items: center; border-radius: var(--radius-sm); padding: 8px 12px; color: var(--color-text-soft); font-weight: 700; text-decoration: none; }
+.primary-nav a, .primary-nav .assistant-nav-entry { display: flex; min-height: 44px; align-items: center; border-radius: var(--radius-sm); padding: 8px 12px; color: var(--color-text-soft); font-weight: 700; text-decoration: none; }
+.primary-nav .assistant-nav-entry:hover,
 .primary-nav a:hover,
 .primary-nav a.router-link-active { background: var(--color-primary-soft); color: var(--color-primary-strong); }
 .account-actions { display: flex; align-items: center; justify-content: space-between; gap: 8px; border-top: 1px solid var(--color-border); padding-top: 12px; }
@@ -102,4 +107,6 @@ const logout = async () => {
 @media (min-width: 1080px) {
   .primary-nav { gap: 6px; margin-left: 36px; }
 }
+.assistant-nav-entry { font: inherit; border: 1px solid var(--color-primary); background: var(--color-primary-soft); cursor: pointer; color: var(--color-primary-strong) !important; }
+.assistant-nav-entry:focus-visible { outline: 3px solid var(--color-primary); outline-offset: 2px; }
 </style>

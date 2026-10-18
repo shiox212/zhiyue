@@ -17,6 +17,7 @@ public class StatsController {
     @Autowired
     private StatsMapper statsMapper;
 
+    @org.springframework.security.access.prepost.PreAuthorize("hasAuthority('stats:read')")
     @GetMapping("/dashboard")
     public Result<Map<String, Object>> getDashboardStats() {
         Map<String, Object> finalData = new HashMap<>();

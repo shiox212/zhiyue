@@ -23,6 +23,7 @@ const router = createRouter({
         { path: 'recommendations', name: 'recommendations', component: () => import('@/views/books/RecommendationsView.vue'), meta: { requiresAuth: true, title: '为你推荐' } },
         { path: 'shelf', name: 'shelf', component: () => import('@/views/shelf/MyShelfView.vue'), meta: { requiresAuth: true, title: '我的书架' } },
         { path: 'profile', name: 'profile', component: () => import('@/views/profile/ProfileView.vue'), meta: { requiresAuth: true, title: '个人中心' } },
+        { path: 'assistant', name: 'assistant', component: () => import('@/views/assistant/LearningAssistantView.vue'), meta: { requiresAuth: true, title: '学习助手' } },
         { path: '403', name: 'forbidden', component: () => import('@/views/system/ForbiddenView.vue'), meta: { title: '无权访问' } },
         { path: ':pathMatch(.*)*', name: 'not-found', component: () => import('@/views/system/NotFoundView.vue'), meta: { title: '页面未找到' } },
       ],
