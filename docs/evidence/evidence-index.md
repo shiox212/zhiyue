@@ -1,21 +1,33 @@
 # 程序与课程验证证据索引
 
-课程最终程序入口为[main](https://github.com/shiox212/zhiyue/tree/main)，以最终准确SHA及[main对应CI](https://github.com/shiox212/zhiyue/actions/workflows/ci.yml?query=branch%3Amain)核对。下面保留历史整合/CI与实验三证据；本次功能分支到develop、develop到main的PR和CI可在[PR记录](https://github.com/shiox212/zhiyue/pulls?q=is%3Apr)中核对。本机原始截图、测试输出与个人报告另行归档。
+源码交付入口为[main](https://github.com/shiox212/zhiyue/tree/main)。
+报告附录和源码包清单中的准确提交，应与[main的CI](https://github.com/shiox212/zhiyue/actions/workflows/ci.yml?query=branch%3Amain)对应。
+下面的实验三记录用于展示课程过程，不替代后续提交的自动检查结果。
+
+## Git与CI
 
 | 证据 | 结果与范围 |
 | --- | --- |
-| [已上传整合提交112e869](https://github.com/shiox212/zhiyue/commit/112e869b743754e8cfdcf99f11fdbdee08c48962) | 包含最终业务代码及M25说明。最终业务改动为6fc96ed的书架封面修复，其后提交为文档同步 |
-| [对应CI run39021093470](https://github.com/shiox212/zhiyue/actions/runs/39021093470) | Backend verify、Frontend verify、Repository safety checks三个job全部completed/success，准确对应112e869 |
-| [当前功能分支CI](https://github.com/shiox212/zhiyue/actions/workflows/ci.yml?query=branch%3Afeature%2Fexperiment-5-rag) | 后续说明提交使用各自准确SHA的运行，不沿用旧提交的通过结果 |
-| [实验三原PR1](https://github.com/shiox212/zhiyue/pull/1) | feature/experiment-3-git-ci → develop的原始练习记录；本次集成另有PR。提交者确认不等同具名第三方GitHub Review |
-| [实验三故意失败run36230006323](https://github.com/shiox212/zhiyue/actions/runs/36230006323) | 隔离练习分支上的故意断言失败，保留失败证据 |
-| [实验三恢复run36230243640](https://github.com/shiox212/zhiyue/actions/runs/36230243640) | 修复断言后的历史恢复成功记录；历史结果不替代当前分支CI |
-| [最终状态说明](../final-state.md) | M25源码/产物对应、启动停止及自动测试、真实问答、模拟回放的分层说明 |
+| [main CI](https://github.com/shiox212/zhiyue/actions/workflows/ci.yml?query=branch%3Amain) | 按准确提交查看后端、前端和仓库检查 |
+| [PR2](https://github.com/shiox212/zhiyue/pull/2)、[PR3](https://github.com/shiox212/zhiyue/pull/3) | 五个实验的程序已依次整合到develop和main |
+| [实验三PR1](https://github.com/shiox212/zhiyue/pull/1) | 早期CI练习，所含提交随程序集成而合并关闭，原draft元数据保留 |
+| [实验三成功run36229661537](https://github.com/shiox212/zhiyue/actions/runs/36229661537) | 实验三阶段三项CI成功 |
+| [故意失败run36230006323](https://github.com/shiox212/zhiyue/actions/runs/36230006323) | 独立练习分支上故意修改断言，证明检查会报错 |
+| [恢复run36230243640](https://github.com/shiox212/zhiyue/actions/runs/36230243640) | 修复断言后恢复成功，不是最终交付提交的CI |
 
-## 本机原始证据
+## 功能与运行
 
-实验一至五独立材料、M30合并报告、截图、原始测试与交付记录保存在本机个人项目工作根，未作为源码文件上传。最终本机演示使用M25；137本馆藏已在演示库，不导出用户认证数据或重复导入。
+| 证据类型 | 已确认范围 |
+| --- | --- |
+| 自动测试 | H2、模型fixture与前端测试，另有类型检查和构建；不等于真实模型或MySQL验证 |
+| 独立MySQL | 12表初始化、V004重复执行、0初始用户/图书、2角色/4权限、空书库API200 |
+| 真实站内回答 | ANSWERED、modelCalled=true、deepseek-flash，书卡110、正确作者及1条引文 |
+| 两次真实AUTO页面 | 无站内命中通用回答、部分资料不足时独立补充；页面未采集这两次请求的token等网络元信息 |
+| 真实书卡导航 | 进入图书详情并重新展开助手，原两条问答仍在 |
+| 历史响应回放 | 引文展开、详情跳转、重开后再次展开，属于模拟交互，未新增模型请求 |
+| 用户体验与封面 | 搜索、详情、书架/推荐、旧问答检查；修复后封面完整；窄屏仅嵌入页面验证 |
 
-真实模型验证与自动测试分开：站内回答与引文由T016/T018保留；无命中及部分资料不足的两次真实页面验收由T020保留，额度2/2已用完。引用跳转后重开另有历史真实响应回放，明确为模拟交互、0新模型。当前GitHub同步没有新增模型调用、数据库操作或服务验收。
-
-最终仓库访问性以GitHub实际可见性为准；个人学习体会和人工确认按本人提供内容整理，不虚构外部评审人、具体意见或GitHub Review。
+课程合并报告包含实验截图。原始日志、完整截图及失败记录保存在本机实验报告与协作交接归档中，
+不作为源码依赖上传。各实验测试数量只对应相应范围，不是最终主分支累计测试总数。
+源代码与本机运行版的关系见[交付状态](../final-state.md)，个人学习体会与人工确认来自本人，
+没有虚构他人的评审意见或GitHub Review。
