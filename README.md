@@ -1,63 +1,45 @@
 # 知阅课程实验项目
 
-**课程最终程序入口为 [main](https://github.com/shiox212/zhiyue/tree/main)。** 五个实验的程序整合、统一AUTO助手和书架封面修复通过 `feature/experiment-5-rag → develop → main` 流程交付。源码安装步骤见[环境与启动说明](docs/setup.md)，版本对应与验收范围见[最终状态说明](docs/final-state.md)。
-
 [![CI](https://github.com/shiox212/zhiyue/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/shiox212/zhiyue/actions/workflows/ci.yml?query=branch%3Amain)
 
-知阅提供图书浏览、用户登录、书架和阅读互动。后端 Java 17 / Spring Boot 3.3.5 / MyBatis，前端 Vue 3 / TypeScript / Vite，数据库 MySQL 8。实验四使用 JWT、HttpOnly Cookie、RBAC 和 CSRF 校验；实验五为统一 AUTO 阅读助手，先检索站内资料，未命中时生成通用知识，部分资料不足时分区补充。当前实现包含T-009登录交互修复、T-010严格引用诊断、T-014统一助手与T-015经典书目检索兼容修复。
+知阅是面向读者的阅读社交与图书推荐平台，包含五个课程实验的整合成果。
+课程源码入口为[main分支](https://github.com/shiox212/zhiyue/tree/main)。
 
-## 当前本机演示（2026-10-17）
+## 功能
 
-使用工作根目录下的 `知阅-本机运行版-20261017-M25/启动.cmd`，在普通 Windows 资源管理器双击，保持窗口打开；出现 READY 后访问 <http://127.0.0.1:5179/books>，后端为18085。输入 `q` 并回车停止。M25仅修复书架封面裁切，使用新前端、原M15同一后端jar和启动器；旧M15保留，切换时先在旧窗口q退出，再启动新包。已有137本馆藏，无需再次导入。需要本机Java、Node、既有MySQL及配置，应用自行加载已有配置；它不是跨机器免配置包。5173是开发地址，M9的5174是旧运行版地址。
+- 图书浏览、搜索、详情、书评、评分、书架阅读状态和个性化推荐。
+- JWT登录、HttpOnly Cookie、CSRF、USER/ADMIN权限及本人数据访问控制。
+- AUTO阅读助手：优先检索站内书目和项目资料，无命中时标明通用知识，资料不足时分区补充。
+- 站内书卡、引用原文展开和详情跳转；同一应用内收起面板或切换页面后保留对话。
+- 书架封面完整缩放，避免裁切书名和作者。
 
-T-022书架封面改为完整缩放，避免细长卡片裁掉封面文字；类型检查与独立构建通过，桌面及390/320px嵌入页面预览确认完整封面，详情仍指向图书132。窄屏为浏览器iframe验证，非真机；不修改书架数据或新增实模。用户新版体验及启动证据以工作根最新交付记录为准，其余功能沿用用户五分钟检查与既有证据。
+## 环境与启动
 
-T-019已验证用户窗口启动、q停止释放端口、重启，以及15:17至15:28跨Agent回合约11分39秒持续可用；这不保证无限期运行。T-020真实AUTO两项验收已用完2/2预算：无站内命中题显示通用/非站内/非联网且无引用，部分资料题显示站内不足和独立通用补充。书卡110进入详情、重开助手后两条回答保留。该次仅取得页面证据，未取得网络响应中的model/requestId/token，不能补造这些字段。
+后端使用Java17、Spring Boot3.3.5和MyBatis；前端使用Vue3、TypeScript与Vite；数据库为MySQL8。
+源码构建需要Maven3.9.x和Node24。
 
-真实站内引用另有T-016/T-018证据；T-020引用展开与跳转后重开使用T-010完整历史响应回放通过（0新增模型），须与新实模区分。旧503的SDK异常及旧进程退出原因仍未知，书卡17检索噪声、真机软键盘与细致视觉留待后续。每次正式提问可能调用服务商并计费，失败后不自动重试。
+按[环境配置与启动说明](docs/setup.md)初始化自己的空数据库、设置本机配置并分别启动前后端。
+该说明统一使用前端 <http://127.0.0.1:5179/books>、后端18085，修改端口时同步代理与CORS来源。
+数据库包含基础六表和V004安全六表，首次空库没有用户和图书，需创建自己的测试数据。
+AI真实生成需要接收者自行配置DeepSeek账号与额度，普通图书和账号功能不依赖模型Key。
 
-源码与M25的对应关系见[最终状态说明](docs/final-state.md)，原始测试日志、启动停止记录和交付清单保留在本机工作根。22份关键业务源码及35份M25产物匹配原装配记录；最后业务改动为 `6fc96ed`，之后仅更新说明和执行保留历史的集成合并。最终提交使用main的准确SHA及[对应CI](https://github.com/shiox212/zhiyue/actions/workflows/ci.yml?query=branch%3Amain)，历史功能分支CI单列。独立MySQL8.0.44新实例已验证12表初始化、V004重复执行及空书库API，未连接原137本演示库，也未新增模型调用。
+仓库提供源码及公开占位配置模板，不含本机配置、原用户数据、137本演示馆藏或本机运行包。
+持有M25本机演示包的用户可按[运行版说明](docs/final-state.md#已有本机演示包)启动，
+该包与源码安装的配置方式不同。
 
-## 发布副本
+## 验证
 
-这是从本机实验二代码快照创建的独立 Git 历史。本机原始提交和私人实验材料保留在本地，本仓库不携带原始 SQL 数据、旧口令历史、私人 PDF/Word 附件及原始基线标签。业务源码和自动化测试保持一致。
+后端执行`mvn verify`；前端执行`npm run typecheck`、`npm run test`和`npm run build`。
+[main的CI](https://github.com/shiox212/zhiyue/actions/workflows/ci.yml?query=branch%3Amain)
+包含后端、前端和仓库文件检查。具体结果须与相应提交对应，前端未配置ESLint。
 
-独立历史以实验二为基线；`feature/experiment-3-git-ci` 引入实验三CI修复并保留[原PR1](https://github.com/shiox212/zhiyue/pull/1)。后续安全、RAG、AUTO助手和最终封面修复在 `feature/experiment-5-rag` 汇总，通过面向develop的集成PR和develop到main的交付PR保留过程。远程证据见[证据索引](docs/evidence/evidence-index.md)，最终下载入口使用main。
+独立MySQL验证覆盖12表初始化、V004重复执行及空书库接口。
+AI证据区分真实模型回答、页面观察与历史响应回放，范围见[验证证据索引](docs/evidence/evidence-index.md)。
+实验设计分别见[安全与认证](docs/experiment-4-security.md)、[RAG阅读助手](docs/experiment-5-rag.md)。
 
-## 源码开发启动
+## 使用边界
 
-按 database/README.md 初始化独立测试数据库，再执行 database/migrations/V004__security.sql。在本机 .env 设置 DB_URL、DB_USERNAME、DB_PASSWORD、JWT_SECRET_BASE64（至少 32 个随机字节的 Base64 编码）。安装 JDK 17、Maven 3.9+、Node 24。详细安全与迁移说明见 [实验四说明](docs/experiment-4-security.md)。
-
-后端在根目录执行 mvn spring-boot:run；前端在 frontend 目录执行 npm ci、npm run dev。默认后端 http://localhost:8081，前端 http://localhost:5173。前端说明见 frontend/README.md。
-
-后端端口可在 .env 中设置 SERVER_PORT；前端通过 frontend/.env.local 的 VITE_BACKEND_URL 指向对应后端。浏览器使用 http://localhost:5173，与 CORS 白名单一致。本地 HTTP 设 COOKIE_SECURE=false；HTTPS 环境使用 true。当前入口是 Vue 前端，历史静态 HTML 和旧 Session 拦截器不参与当前认证流程。
-
-图书知识助手还需在本机 .env 配置 DEEPSEEK_API_KEY，可选 DEEPSEEK_MODEL=deepseek-flash，然后重启后端。通过 OpenAI Java SDK 兼容接口访问 DeepSeek 官方地址；不需要 OpenAI 账户。独立副本未复制私密配置；2026-10-08 联调由应用自行加载用户指定配置。只配置 Key 不代表连接验证通过，实际调用仍可能失败。
-
-站内内容页点击右下角“问问 AI”或顶部“AI 阅读助手”打开面板，点击收起或按 Escape 收起；`/assistant` 提供全页入口，登录页不显示浮层。访客可打开面板并选择“登录后提问”。界面统一使用 `AUTO`，不再手动切换模式：先检索公开书目和项目资料；命中时显示真实站内书卡和通过校验的引用，未命中时标注通用知识，部分资料不足时独立展示通用补充。引用可展开原文、进入对应图书详情；简介不等于全文。历史与草稿保存在当前应用内存，收起、路由跳转和面板卸载不清空，刷新、退出或切换账号后清空，不向模型发送历史上下文。旧 `LIBRARY` / `GENERAL` 仅保留接口兼容。详见 [实验五说明](docs/experiment-5-rag.md)。
-
-## 验证与实验状态
-
-后端在根目录执行 mvn verify。前端执行 npm run typecheck、npm run test、npm run build。前端未配置 ESLint。实验四本地测试覆盖 JWT、CSRF、RBAC、跨用户访问、刷新重放、退出撤销和 AI 输入检查。准确整合提交 `112e869` 的云端CI已核实通过；其他提交须核对各自运行，不能把模拟测试当成真实MySQL或模型验证。
-
-密码使用 BCrypt，已移除在线明文兼容，旧数据需显式离线迁移。个人数据接口由服务端核对身份。AI 输入检查只是模型接入前的有限防护，仓库不代表生产安全验收通过。
-
-当前交付复用T-014最后助手定向23/23、类型检查与构建，以及T-015最终后端定向61/61、真库只读检索204项、M15运行检查12项。T-021逐项核对源码指纹和原始日志，业务代码未变，不重复普通全量回归，也不新增模型调用。自动测试、真库只读检索、真实生成和历史响应回放分别记录，不能相互替代。
-
-### 历史验证记录
-
-以下旧模式、端口、“尚未提交”等描述仅对应原日期现场，当前状态以上文为准。
-
-实验五于 2026-10-04 完成本地验证：后端 81 项测试、前端 11 项测试、类型检查与生产构建通过，并完成真实 MySQL / DeepSeek 调用和浏览器验证。测试通过不等于模型每次都答对；真实验证中也出现被引用校验拦截的输出。
-
-2026-10-08 T-001 修订后定向前端测试 2 个文件、15 项通过，类型检查与生产构建通过。T-003 使用专用 Maven artifact 缓存解除早期依赖阻塞，并修复完整长书名被短前缀书名抢先排序的问题；修复后定向 46/46、完整 `mvn verify` 95/95 通过，退出码均为 0。后端测试使用 H2 和本地模型 fixture，不代表真实 MySQL 或 DeepSeek 联调；本次文档更新仅引用原日期日志，没有重跑这些测试。
-
-2026-10-08 接管核查确认本地代码 HEAD 与远程跟踪引用均为 `49fd926f6ffbe593f7677fbe09b1b8619a167aab`。用户转述外部 Agent 已普通推送该提交。10:20 用户在已登录的 Shio 账户运行主 Agent 检查过的只读脚本，主 Agent 读回结果：当前提交 [CI run 37714605273](https://github.com/shiox212/zhiyue/actions/runs/37714605273) 及 Backend verify、Frontend verify、Repository safety checks 三个 job 均成功；旧提交 f464020 的 run 37712339149 后端测试打包步骤失败，另两 job 成功。此前 HTTP 404 和 CodexSandboxOffline 认证失败只作为历史记录，结论来自实际可见仓库的 run/job。本轮仅授权 Actions 只读核查，上传、PR 与合并暂停。
-
-2026-10-08 T-008 经当前 Vite 代理实测真实 MySQL 查询、注册登录、会话恢复、访客 401、缺 CSRF 403、非法模式400及退出失效。沙箱账户模型请求两次503、公网探测EACCES、Chrome启动失败均保留；后续正常账户实际浏览器通过访客开关/Escape焦点、登录回跳、模式标注、收起/导航保持、两读者隔离、退出清空401及手机边界。DeepSeek 两次真实响应：LIBRARY=UNVERIFIED（隐藏未核对输出），GENERAL=GENERAL_KNOWLEDGE（有实际回答、请求编号和token，无站内引用）；NO_EVIDENCE分支另经浏览器确认未调用模型。LIBRARY成功引用/展开仍缺本轮证据，不能标完整流程全通过。
-
-真实浏览器定位初始登录表单blur插入错误提示使注册按钮在鼠标按下/松开间移位；T-009仅删除两处blur绑定、保留submit校验，并新增2项回归。10:55前端全量4文件23/23、typecheck/build均退出0；真实鼠标复测和UI注册登录通过。该修复尚未提交，49fd926云端CI不能覆盖本地差异。联调累计保留5个合成账户（ID4至8），均已退出，随机口令未保存。配置仅由应用加载，Agent未读取、输出或复制 `.env`；2026-10-04历史联调不替代当前证据。论文、总Word及远程写操作暂停。
-
-2026-10-08 T-010 后续补证：首次真实 LIBRARY 请求被严格校验拒绝，固定日志为 `DUPLICATE_SOURCE_ID`，此原因仅对应该次请求。提示词明确同一来源的多个事实合并成一个 citation，未放宽逐字引用或编号校验；12:17 定向19/19通过。第二次请求 `bf76041d-0e4f-492a-b30b-871c8668b6d8` 返回 `ANSWERED`，引用 `book_1_1`、服务端 bookId=1；实际浏览器展开原文、进入匹配详情并保持会话。两次模型预算已用完，历史拒绝原因仍未知；一次成功不保证所有生成正确。新增两名合成读者ID10/11均已退出，手机固定页头遮挡与在途退出竞态的进一步验证后置。
-
-历史T-011交付为 `知阅-本机运行版-20261008-M9`（5174/18081），其八文件未提交状态仅描述当时现场。当前演示使用上文M25（5179/18085）；旧M9/M15保留，49fd926云端CI不覆盖后续本地整合。
+助手使用统计型TF-IDF检索，未部署神经向量库；书目简介不等于图书全文。
+引用校验通过也不保证结论正确，通用回答不代表实时联网核实。
+对话仅保存在应用内存，刷新、退出、切换账号或清空后会丢失。
+模型请求可能计费，失败不自动重试。项目未作公网生产部署或手机真机完整验收。

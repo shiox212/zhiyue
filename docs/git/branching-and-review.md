@@ -37,7 +37,7 @@ git push -u origin feature/example
 
 ## 建议保护规则
 
-远程仓库建立后，可为 `main` 设置：
+可按协作需要为`main`配置以下规则；本节是建议，不表示仓库已经启用这些保护：
 
 - 必须通过 Pull Request 合并。
 - 至少一名人工评审者批准。
