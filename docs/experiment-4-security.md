@@ -13,19 +13,10 @@
 密钥只保存在服务端本地配置；更换密钥会让此前签名的访问令牌失效。
 `.env`、`frontend/.env.local` 均由 Git 忽略。
 
-IDEA 打开本项目根目录，选择 JDK 17，等待 Maven 导入。启动
-`EbookRecommendSystemApplication`，运行配置的工作目录必须为项目根目录，
-这样 Spring Boot 才能读取 `.env`。前端终端进入 `frontend`，首次执行
-`npm ci`，随后执行 `npm run dev`，浏览器打开 `http://localhost:5173`。
-
-默认后端 8081。如果 Windows 保留了该端口，可将 `.env` 中 SERVER_PORT
-改为可用端口，并在 `frontend/.env.local` 配置
-`VITE_BACKEND_URL=http://127.0.0.1:相同端口`。本地 HTTP 使用
-`COOKIE_SECURE=false`，HTTPS 部署使用默认 true。CORS 默认为
-`http://localhost:5173`；改浏览器来源时需同步修改 `CORS_ALLOWED_ORIGIN`。
-
-当前支持 Vue 前端。旧静态 HTML、旧 `/api/user/login` 与旧 Session 拦截器
-不属于本实验的运行入口。
+源码安装与启动统一见[环境说明](setup.md)：JDK17、Maven3.9.x、Node24、MySQL8，
+前端5179、后端18085，代理/CORS保持同一主机名和来源。
+使用IDEA时运行目录为含pom.xml的项目根；本机HTTP设COOKIE_SECURE=false，HTTPS使用true。
+当前入口是Vue前端，旧静态HTML和旧Session拦截器不参与当前认证。
 
 ## 认证与撤销
 
@@ -83,9 +74,9 @@ POST `/api/safety/validate` 是实验四的检查接口，需要认证和 CSRF�
 12000 字符。拒绝非法控制字符、资料编号和部分明显越界指令。
 服务端固定系统规则，将用户问题和资料作为独立的不可信数据保留。
 
-关键词规则可能误判或漏判，不能宣称解决提示注入。当前没有调用模型、
-检索知识库或执行工具。实验五仍需落实资料来源、检索权限、引用、
-输出处理和模型调用边界，不能把客户端提交的资料编号视为可信引用。
+该安全检查接口自身不调用模型、检索知识库或执行工具；整合版本的模型与检索由
+[实验五助手接口](experiment-5-rag.md)负责。关键词规则可能误判或漏判，不能保证抵御全部提示注入。
+客户端提交的资料编号也不能直接当作可信引用。
 
 ## 验证边界
 
@@ -94,5 +85,5 @@ POST `/api/safety/validate` 是实验四的检查接口，需要认证和 CSRF�
 真实 MySQL 和浏览器记录在项目外的独立实验报告目录。
 CSRF 集成测试通过真实 Cookie 和请求头完成，避免测试辅助仓库污染。
 
-本分支没有执行 GitHub 上传或云端 CI。当前不包含生产限流、完整安全审计、
-HTTPS 部署验收，也不构成对所有提示注入的防护保证。
+整合源码已经上传公开main，CI按相应提交核对，入口见[证据索引](evidence/evidence-index.md)。
+实验四检查范围不包含生产部署和完整安全审计；实验五有单实例模型调用限制，不能当作分布式生产限流。
