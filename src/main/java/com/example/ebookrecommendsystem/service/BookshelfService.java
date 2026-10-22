@@ -19,6 +19,11 @@ public class BookshelfService {
     // 添加或更新书架状态
     @Transactional(rollbackFor = Exception.class)
     public Result<Object> addToShelf(Bookshelf bookshelf) {
+        int status = bookshelf.getReadStatus() == null ? 0 : bookshelf.getReadStatus();
+        if (status < 0 || status > 2) {
+            throw new com.example.ebookrecommendsystem.exception.BusinessException("阅读状态只能是0、1或2");
+        }
+        bookshelf.setReadStatus(status);
         Bookshelf existRecord = bookshelfMapper.findByUserIdAndBookId(bookshelf.getUserId(), bookshelf.getBookId());
 
         if (existRecord != null) {
