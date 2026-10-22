@@ -48,6 +48,8 @@
 | `/api/admin/**` | 必须具有 ADMIN 角色 |
 | 管理图书、用户、书评与统计 | 另外由 `@PreAuthorize` 检查具体权限 |
 
+兼容的旧写接口`POST /api/book/add`也同时要求ADMIN和`book:manage`，不能绕过管理接口限制。
+
 权限为 `book:manage`、`user:manage`、`review:moderate`、`stats:read`。
 本实验通过管理 API 验证权限，没有新增 Vue 管理后台。管理员须由数据库
 维护人员针对明确账户赋予；不能通过公开注册接口自提权。
