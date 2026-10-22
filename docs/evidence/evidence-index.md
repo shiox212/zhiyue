@@ -1,7 +1,7 @@
 # 程序与课程验证证据索引
 
 源码交付入口为[main](https://github.com/shiox212/zhiyue/tree/main)。
-报告附录和源码包清单中的准确提交，应与[main的CI](https://github.com/shiox212/zhiyue/actions/workflows/ci.yml?query=branch%3Amain)对应。
+源码包清单中的准确提交，应与[main的CI](https://github.com/shiox212/zhiyue/actions/workflows/ci.yml?query=branch%3Amain)对应。
 下面的实验三记录用于展示课程过程，不替代后续提交的自动检查结果。
 
 ## Git与CI

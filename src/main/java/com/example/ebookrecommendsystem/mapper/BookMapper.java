@@ -43,7 +43,10 @@ public interface BookMapper {
             "</script>")
     List<Book> findByIds(@Param("ids") java.util.List<Integer> ids);
 
-    @Select("SELECT * FROM book WHERE id = #{id}")
+    @Select("SELECT b.*, (SELECT AVG(r.score) FROM rating r WHERE r.book_id=b.id) AS avg_score, " +
+            "(SELECT COUNT(*) FROM rating r WHERE r.book_id=b.id) AS rating_count, " +
+            "(SELECT COUNT(*) FROM review rv WHERE rv.book_id=b.id AND rv.status=1) AS review_count " +
+            "FROM book b WHERE b.id = #{id}")
     Book findById(Integer id);
 
     @Select("SELECT * FROM book WHERE title LIKE CONCAT('%', #{keyword}, '%') OR author LIKE CONCAT('%', #{keyword}, '%') ORDER BY create_time DESC")

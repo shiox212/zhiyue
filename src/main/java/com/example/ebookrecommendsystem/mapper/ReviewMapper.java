@@ -29,7 +29,7 @@ public interface ReviewMapper {
     void insertLike(@Param("reviewId") Integer reviewId, @Param("userId") Integer userId);
 
     @org.apache.ibatis.annotations.Delete("DELETE FROM review_like WHERE review_id = #{reviewId} AND user_id = #{userId}")
-    void deleteLike(@Param("reviewId") Integer reviewId, @Param("userId") Integer userId);
+    int deleteLike(@Param("reviewId") Integer reviewId, @Param("userId") Integer userId);
 
     @org.apache.ibatis.annotations.Update("UPDATE review SET like_count = like_count + 1 WHERE id = #{reviewId}")
     void incrLikeCount(@Param("reviewId") Integer reviewId);

@@ -40,6 +40,7 @@ public class BookController {
     }
 
     @PostMapping("/add")
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN') and hasAuthority('book:manage')")
     public Result<Object> add(@RequestBody @Valid Book book) {
         return bookService.addBook(book);
     }
