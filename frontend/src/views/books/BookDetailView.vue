@@ -27,6 +27,13 @@ const reviewError = ref('')
 
 const bookId = computed(() => Number(route.params.id))
 
+const refreshStats = async () => {
+  const id = bookId.value
+  // The write has already succeeded; a follow-up read must not report it as failed.
+  const updated = await booksApi.getById(id).catch(() => null)
+  if (updated && bookId.value === id) book.value = updated
+}
+
 const load = async () => {
   loading.value = true
   error.value = ''
@@ -70,6 +77,7 @@ const submitRating = async () => {
   try {
     await engagementApi.rate(auth.user.id, bookId.value, rating.value)
     await shelfApi.save(auth.user.id, bookId.value, 2)
+    await refreshStats()
     ui.notify('评分已保存，并将图书标记为“已读”', 'success')
   } catch (cause) {
     ui.notify(getErrorMessage(cause), 'error')
@@ -91,6 +99,7 @@ const submitReview = async () => {
     await engagementApi.review(auth.user.id, bookId.value, content)
     reviewContent.value = ''
     reviews.value = await booksApi.reviews(bookId.value)
+    await refreshStats()
     ui.notify('书评已发布', 'success')
   } catch (cause) {
     reviewError.value = getErrorMessage(cause)

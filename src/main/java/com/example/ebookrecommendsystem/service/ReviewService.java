@@ -52,11 +52,10 @@ public class ReviewService {
 
     @Transactional(rollbackFor = Exception.class)
     public Result<Object> unlikeReview(Integer reviewId, Integer userId) {
-        int exist = reviewMapper.countLike(reviewId, userId);
-        if (exist == 0) {
+        // Only the transaction that actually removes a row may decrement the counter.
+        if (reviewMapper.deleteLike(reviewId, userId) == 0) {
             return Result.error("您还没有点赞");
         }
-        reviewMapper.deleteLike(reviewId, userId);
         reviewMapper.decrLikeCount(reviewId);
         return Result.success(null, "已取消点赞");
     }
