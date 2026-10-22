@@ -28,7 +28,9 @@
 运行依赖该本机的Java、Node、既有MySQL及配置；不要同时启动多个运行包。
 
 M25前端对应`6fc96ed`业务代码，后端JAR与启动器沿用M15。
-22份关键源码和35份运行文件已与装配指纹核对一致。
+M25装配时的22份关键源码和35份运行文件曾核对一致。
+本轮权限、阅读状态、点赞和详情统计修复已更新源码，未重建M25；
+当前35份运行文件仍匹配原装配指纹，不能将M25当成本轮修复后的运行版。
 文档更新、Git合并和CI成功不表示已替换该运行包，也不表示服务此刻在线。
 
 ## 验证范围
@@ -40,4 +42,6 @@ M25前端对应`6fc96ed`业务代码，后端JAR与启动器沿用M15。
 
 程序经[PR2](https://github.com/shiox212/zhiyue/pull/2)和
 [PR3](https://github.com/shiox212/zhiyue/pull/3)集成至main。
+最终审查修复经[PR6](https://github.com/shiox212/zhiyue/pull/6)和
+[PR7](https://github.com/shiox212/zhiyue/pull/7)合入main。
 提交者确认、GitHub Review、CI与实际服务部署分别记录，未将本人确认写成第三方评审。
